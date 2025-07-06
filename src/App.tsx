@@ -60,3 +60,5 @@ const App = () => (
 );
 
 export default App;
+
+// Versão para produção
