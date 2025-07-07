@@ -1,167 +1,96 @@
+import React, { useState } from 'react';
+import { DndContext, useDraggable, useDroppable, closestCorners } from '@dnd-kit/core';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 
-import { useEffect, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
-import {
-  DndContext,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  closestCorners
-} from '@dnd-kit/core';
-import { toast } from "sonner";
-import { KanbanColumn } from './KanbanColumn';
-
-type Order = Database['public']['Tables']['orders']['Row'];
-type OrderStatus = Database['public']['Enums']['order_status'];
-
-const fetchOrders = async (): Promise<Order[]> => {
-    const { data, error } = await supabase.from("orders").select("*").order('created_at', { ascending: false });
-    if (error) throw new Error(error.message);
-    return data || [];
+const initialKanbanData = {
+  'Novo Pedido': [
+    { id: '126', title: 'Pedido #126', description: '1x Nike Air Force', tag: 'Cliente Novo', customer: { name: 'João Santos', phone: '(21) 98765-4321', email: 'joao.santos@example.com' }, shipping: { address: 'Rua das Flores, 123, Rio de Janeiro, RJ', method: 'Retira', carrier: 'N/A' }, billing: { address: 'Rua das Flores, 123, Rio de Janeiro, RJ' }, product: { name: 'Nike Air Force', color: 'Branco', size: '42', quantity: 1 } },
+    { id: '125', title: 'Pedido #125', description: '2x Vans Old Skool', tag: 'Prioridade Alta', customer: { name: 'Maria Silva', phone: '(11) 91234-5678', email: 'maria.silva@example.com' }, shipping: { address: 'Av. Paulista, 1000, São Paulo, SP', method: 'Envio', carrier: 'Correios (SEDEX)' }, billing: { address: 'Av. Paulista, 1000, São Paulo, SP' }, product: { name: 'Vans Old Skool', color: 'Preto/Branco', size: '38', quantity: 2 } },
+  ],
+  'A Separar': [
+    { id: '123', title: 'Pedido #123', description: '1x Adidas Forum', tag: 'Frágil', customer: { name: 'Pedro Costa', phone: '(31) 95555-4444', email: 'pedro.costa@example.com' }, shipping: { address: 'Rua dos Inconfidentes, 500, Belo Horizonte, MG', method: 'Envio', carrier: 'Total Express' }, billing: { address: 'Rua dos Inconfidentes, 500, Belo Horizonte, MG' }, product: { name: 'Adidas Forum', color: 'Branco/Azul', size: '40', quantity: 1 } },
+  ],
+  'Enviado': [
+    { id: '120', title: 'Pedido #120', description: '5x Nike Dunk', tag: 'Loggi', customer: { name: 'Ana Pereira', phone: '(41) 93333-2222', email: 'ana.pereira@example.com' }, shipping: { address: 'Rua 24 Horas, 1, Curitiba, PR', method: 'Envio', carrier: 'Loggi' }, billing: { address: 'Rua 24 Horas, 1, Curitiba, PR' }, product: { name: 'Nike Dunk', color: 'Panda', size: '39', quantity: 5 } },
+  ],
 };
 
-const updateOrderStatus = async ({ id, status }: { id: number, status: OrderStatus }) => {
-    const { error } = await supabase
-        .from('orders')
-        .update({ status })
-        .eq('id', id);
+function KanbanCard({ card, onCardClick }) {
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: card.id });
+  const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`, zIndex: 999 } : undefined;
 
-    if (error) {
-        throw new Error(error.message);
-    }
-};
+  return (
+    <div ref={setNodeRef} style={style} className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm mb-4 text-left w-full">
+      <div className="flex justify-between items-start gap-2">
+        <div {...listeners} {...attributes} className="cursor-grab flex-grow">
+          <h4 className="font-semibold text-sm text-gray-800 mb-1">{card.title}</h4>
+          <p className="text-xs text-gray-500">{card.description}</p>
+          {/* A linha do Badge foi removida daqui */}
+        </div>
+        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-gray-400 hover:text-gray-700" onClick={() => onCardClick(card)}>
+          <ExternalLink className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
-const statusLabels: Record<OrderStatus, string> = {
-  novo_pedido: "Novo Pedido",
-  a_separar: "A separar",
-  separado: "Separado",
-  a_enviar: "A enviar",
-  enviado: "Enviado",
-  recuperar_carrinho: "Recuperar Carrinho"
-};
+function KanbanColumn({ id, title, children }) {
+  const { setNodeRef } = useDroppable({ id });
+  return (
+    <div ref={setNodeRef} className="bg-gray-100/80 p-4 rounded-xl w-full">
+      <h3 className="font-bold text-gray-700 mb-4 px-1">{title}</h3>
+      <div className="min-h-[200px]">{children}</div>
+    </div>
+  );
+}
 
-const KanbanBoard = () => {
-    const queryClient = useQueryClient();
-    const { data: orders, isLoading, error } = useQuery({ queryKey: ['orders'], queryFn: fetchOrders });
-    const [localOrders, setLocalOrders] = useState<Order[]>([]);
+const KanbanBoard = ({ onCardClick }) => {
+  const [columns, setColumns] = useState(initialKanbanData);
 
-    useEffect(() => {
-        if (orders) {
-            setLocalOrders(orders);
-        }
-    }, [orders]);
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over) return;
+    
+    setColumns((prev) => {
+      const activeColumn = Object.keys(prev).find(key => prev[key].some(card => card.id === active.id));
+      const overColumn = over.id as string;
 
-    const updateOrderMutation = useMutation({
-        mutationFn: updateOrderStatus,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
-            toast.success("Pedido atualizado com sucesso!");
-        },
-        onError: (err: Error) => {
-            toast.error(`Erro ao atualizar pedido: ${err.message}`);
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
-        },
+      if (!activeColumn || !overColumn || activeColumn === overColumn) {
+        return prev;
+      }
+      
+      const newActiveItems = [...prev[activeColumn]];
+      const newOverItems = [...prev[overColumn]];
+      
+      const activeIndex = newActiveItems.findIndex(card => card.id === active.id);
+      const [movedItem] = newActiveItems.splice(activeIndex, 1);
+      
+      newOverItems.push(movedItem);
+
+      return {
+        ...prev,
+        [activeColumn]: newActiveItems,
+        [overColumn]: newOverItems,
+      };
     });
+  };
 
-    const columns: OrderStatus[] = [
-        'novo_pedido',
-        'a_separar',
-        'separado',
-        'a_enviar',
-        'enviado',
-        'recuperar_carrinho'
-    ];
-
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor),
-    );
-
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
-
-        if (!over) return;
-        
-        const activeId = active.id.toString();
-        const overContainerId = over.data.current?.sortable?.containerId || over.id.toString();
-
-        const activeOrder = localOrders.find(o => o.id.toString() === activeId);
-        const newStatus = overContainerId as OrderStatus;
-
-        if (activeOrder && newStatus && activeOrder.status !== newStatus) {
-            // Optimistic update for instant UI feedback
-            setLocalOrders(prevOrders =>
-                prevOrders.map(order =>
-                    order.id.toString() === activeId ? { ...order, status: newStatus } : order
-                )
-            );
-
-            // Trigger mutation to update the database
-            updateOrderMutation.mutate({ id: activeOrder.id, status: newStatus });
-        }
-    };
-
-    if (isLoading) return <div className="text-center">Carregando pedidos...</div>;
-    if (error) return <div className="text-center text-red-500">Erro ao carregar pedidos: {error.message}</div>;
-
-    const ordersByStatus = (status: OrderStatus) => {
-        return localOrders?.filter(order => order.status === status) || [];
-    }
-
-    // Organize columns in 3 rows of 2 columns each
-    const row1 = columns.slice(0, 2);
-    const row2 = columns.slice(2, 4);
-    const row3 = columns.slice(4, 6);
-
-    return (
-        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h2 className="text-xl font-semibold mb-6">Controle de Pedidos</h2>
-                
-                <div className="space-y-6">
-                  {/* First Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {row1.map(status => (
-                      <KanbanColumn 
-                        key={status}
-                        id={status}
-                        title={statusLabels[status]}
-                        orders={ordersByStatus(status)}
-                      />
-                    ))}
-                  </div>
-                  
-                  {/* Second Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {row2.map(status => (
-                      <KanbanColumn 
-                        key={status}
-                        id={status}
-                        title={statusLabels[status]}
-                        orders={ordersByStatus(status)}
-                      />
-                    ))}
-                  </div>
-                  
-                  {/* Third Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {row3.map(status => (
-                      <KanbanColumn 
-                        key={status}
-                        id={status}
-                        title={statusLabels[status]}
-                        orders={ordersByStatus(status)}
-                      />
-                    ))}
-                  </div>
-                </div>
-            </div>
-        </DndContext>
-    );
+  return (
+    <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {Object.entries(columns).map(([columnId, cards]) => (
+          <KanbanColumn key={columnId} id={columnId} title={`${columnId} (${cards.length})`}>
+            {cards.map((card) => (
+              <KanbanCard key={card.id} card={card} onCardClick={onCardClick} />
+            ))}
+          </KanbanColumn>
+        ))}
+      </div>
+    </DndContext>
+  );
 };
 
 export default KanbanBoard;

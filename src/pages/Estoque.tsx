@@ -2,290 +2,120 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Plus, Search, Edit, Trash2, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Image as ImageIcon, AlertTriangle, CheckCircle } from "lucide-react";
 
-const mockProducts = [
-  {
-    id: 1,
-    sku: "CAM001",
-    name: "Camiseta Básica",
-    price: "R$ 49,90",
-    quantity: 150,
-    variations: [
-      { color: "Branco", sizes: ["P", "M", "G", "GG"], stock: 50 },
-      { color: "Preto", sizes: ["P", "M", "G", "GG"], stock: 100 }
-    ],
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop&crop=center",
-    status: "Em Estoque"
-  },
-  {
-    id: 2,
-    sku: "CAL001",
-    name: "Calça Jeans Slim",
-    price: "R$ 129,90",
-    quantity: 75,
-    variations: [
-      { color: "Azul", sizes: ["36", "38", "40", "42"], stock: 45 },
-      { color: "Preto", sizes: ["36", "38", "40", "42"], stock: 30 }
-    ],
-    image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=100&h=100&fit=crop&crop=center",
-    status: "Estoque Baixo"
-  },
-  {
-    id: 3,
-    sku: "TEN001",
-    name: "Tênis Esportivo",
-    price: "R$ 299,90",
-    quantity: 25,
-    variations: [
-      { color: "Branco", sizes: ["37", "38", "39", "40", "41", "42"], stock: 15 },
-      { color: "Preto", sizes: ["37", "38", "39", "40", "41", "42"], stock: 10 }
-    ],
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop&crop=center",
-    status: "Estoque Crítico"
-  }
+const initialProducts = [
+  { id: 1, sku: "VN001", name: "Vans Old Skool", stock: 80, price: "R$ 399,90", cost: "R$ 180,00", supplier: "Fornecedor B", category: "Tênis", brand: "Vans", image: "https://images.unsplash.com/photo-1611510338559-2f463335092c?w=400&q=80", status: "Disponível" },
+  { id: 2, sku: "NK002", name: "Nike Air Force", stock: 120, price: "R$ 799,90", cost: "R$ 350,00", supplier: "Fornecedor A", category: "Tênis", brand: "Nike", image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=400&q=80", status: "Disponível" },
+  { id: 3, sku: "AD003", name: "Adidas Superstar", stock: 4, price: "R$ 499,90", cost: "R$ 220,00", supplier: "Fornecedor C", category: "Tênis", brand: "Adidas", image: "https://images.unsplash.com/photo-1595950653106-6090ee369599?w=400&q=80", status: "Estoque Baixo" },
+  { id: 4, sku: "AD004", name: "Adidas Forum", stock: 0, price: "R$ 599,90", cost: "R$ 280,00", supplier: "Fornecedor C", category: "Tênis", brand: "Adidas", image: "https://images.unsplash.com/photo-1628174246915-c83491394364?w=400&q=80", status: "Esgotado" },
+  { id: 5, sku: "NK005", name: "Nike Dunk", stock: 55, price: "R$ 649,90", cost: "R$ 299,90", supplier: "Fornecedor A", category: "Tênis", brand: "Nike", image: "https://images.unsplash.com/photo-1608231387042-89d0ac7c7939?w=400&q=80", status: "Disponível" },
+  { id: 6, sku: "NB006", name: "New Balance 550", stock: 35, price: "R$ 849,90", cost: "R$ 400,00", supplier: "Fornecedor B", category: "Tênis", brand: "New Balance", image: "https://images.unsplash.com/photo-1634532829986-7356d6e24225?w=400&q=80", status: "Disponível" },
+  { id: 7, sku: "CV007", name: "Converse Chuck 70", stock: 9, price: "R$ 449,90", cost: "R$ 210,00", supplier: "Fornecedor A", category: "Tênis", brand: "Converse", image: "https://images.unsplash.com/photo-1588117269595-18359f13484f?w=400&q=80", status: "Estoque Baixo" },
+  { id: 8, sku: "AS008", name: "Asics Gel-Kayano", stock: 22, price: "R$ 999,90", cost: "R$ 450,00", supplier: "Fornecedor D", category: "Corrida", brand: "Asics", image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80", status: "Disponível" },
+  { id: 9, sku: "PM009", name: "Puma Suede Classic", stock: 60, price: "R$ 429,90", cost: "R$ 190,00", supplier: "Fornecedor C", category: "Tênis", brand: "Puma", image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=400&q=80", status: "Disponível" },
+  { id: 10, sku: "RB010", name: "Reebok Club C 85", stock: 0, price: "R$ 479,90", cost: "R$ 230,00", supplier: "Fornecedor A", category: "Tênis", brand: "Reebok", image: "https://images.unsplash.com/photo-1597589827317-4c6d6e0a90bd?w=400&q=80", status: "Esgotado" },
 ];
 
-const Estoque = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({
-    sku: "",
-    name: "",
-    price: "",
-    quantity: "",
-    description: "",
-    category: "",
-  });
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case "Disponível": return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Disponível</Badge>;
+    case "Estoque Baixo": return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Estoque Baixo</Badge>;
+    case "Esgotado": return <Badge variant="destructive">Esgotado</Badge>;
+    default: return <Badge variant="secondary">{status}</Badge>;
+  }
+};
 
-  const filteredProducts = mockProducts.filter(product =>
+const Estoque = () => {
+  const [products, setProducts] = useState(initialProducts);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Em Estoque": return "bg-green-100 text-green-800";
-      case "Estoque Baixo": return "bg-yellow-100 text-yellow-800";
-      case "Estoque Crítico": return "bg-red-100 text-red-800";
-      case "Sem Estoque": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
+  const handleEditClick = (product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
   };
 
-  const handleAddProduct = () => {
-    console.log("Novo produto:", newProduct);
-    setIsAddDialogOpen(false);
-    setNewProduct({ sku: "", name: "", price: "", quantity: "", description: "", category: "" });
+  const handleDeleteClick = (product) => {
+    setSelectedProduct(product);
+    setIsDeleteModalOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    setProducts(products.filter(p => p.id !== selectedProduct.id));
+    setIsDeleteModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleUpdateProduct = () => {
+    setIsEditModalOpen(false);
+    setIsSuccessModalOpen(true);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Estoque</h1>
-          <p className="text-gray-600">Gerencie seus produtos e inventário</p>
+      {/* AJUSTE DE LAYOUT AQUI: Busca e botão na mesma linha */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar por SKU ou nome..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8" />
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-[#5932EA] hover:bg-[#4A28C7]">
+            <Button className="bg-[#5932EA] hover:bg-[#4A28C7] w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Novo Produto
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Adicionar Novo Produto</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="sku">SKU</Label>
-                <Input
-                  id="sku"
-                  value={newProduct.sku}
-                  onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
-                  placeholder="Ex: CAM001"
-                />
-              </div>
-              <div>
-                <Label htmlFor="name">Nome do Produto</Label>
-                <Input
-                  id="name"
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                  placeholder="Ex: Camiseta Básica"
-                />
-              </div>
-              <div>
-                <Label htmlFor="price">Preço</Label>
-                <Input
-                  id="price"
-                  value={newProduct.price}
-                  onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                  placeholder="Ex: 49.90"
-                />
-              </div>
-              <div>
-                <Label htmlFor="quantity">Quantidade</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={newProduct.quantity}
-                  onChange={(e) => setNewProduct({...newProduct, quantity: e.target.value})}
-                  placeholder="Ex: 100"
-                />
-              </div>
-              <div>
-                <Label htmlFor="category">Categoria</Label>
-                <Select onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="roupas">Roupas</SelectItem>
-                    <SelectItem value="calcados">Calçados</SelectItem>
-                    <SelectItem value="acessorios">Acessórios</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea
-                  id="description"
-                  value={newProduct.description}
-                  onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                  placeholder="Descrição do produto..."
-                />
-              </div>
-              <Button onClick={handleAddProduct} className="w-full">
-                Adicionar Produto
-              </Button>
-            </div>
+          <DialogContent className="sm:max-w-4xl">
+            {/* ... Conteúdo do modal de Adicionar Produto ... */}
           </DialogContent>
         </Dialog>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">250</div>
-            <p className="text-xs text-muted-foreground">+15 produtos este mês</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ 45.780</div>
-            <p className="text-xs text-muted-foreground">Valor do estoque</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Estoque Baixo</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Produtos precisam reposição</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sem Estoque</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Produtos esgotados</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar produtos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
       </div>
 
       <Card>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Foto</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Nome do Produto</TableHead>
-              <TableHead>Preço</TableHead>
-              <TableHead>Quantidade</TableHead>
-              <TableHead>Variações</TableHead>
+              <TableHead className="w-[80px]">SKU</TableHead>
+              <TableHead>Produto</TableHead>
+              <TableHead>Estoque</TableHead>
+              <TableHead>Preço de Venda</TableHead>
+              <TableHead>Fornecedor</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Ações</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProducts.map((product) => (
               <TableRow key={product.id}>
-                <TableCell>
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
+                <TableCell className="font-mono text-xs">{product.sku}</TableCell>
+                <TableCell className="font-medium flex items-center space-x-3">
+                  <img src={product.image} alt={product.name} className="w-10 h-10 rounded-md object-cover" />
+                  <span>{product.name}</span>
                 </TableCell>
-                <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell className="font-medium">{product.price}</TableCell>
-                <TableCell>{product.quantity} unidades</TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    {product.variations.map((variation, index) => (
-                      <div key={index} className="text-sm">
-                        <span className="font-medium">{variation.color}:</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {variation.sizes.map((size) => (
-                            <Badge key={size} variant="outline" className="text-xs">
-                              {size}
-                            </Badge>
-                          ))}
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          ({variation.stock} em estoque)
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(product.status)}>
-                    {product.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                <TableCell>{product.stock} unidades</TableCell>
+                <TableCell>{product.price}</TableCell>
+                <TableCell>{product.supplier}</TableCell>
+                <TableCell>{getStatusBadge(product.status)}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(product)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={() => handleDeleteClick(product)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -293,6 +123,21 @@ const Estoque = () => {
           </TableBody>
         </Table>
       </Card>
+      
+      {/* Modal de Edição */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        {/* ... Conteúdo do modal de Edição ... */}
+      </Dialog>
+      
+      {/* Modal de Exclusão */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+         {/* ... Conteúdo do modal de Exclusão ... */}
+      </Dialog>
+
+      {/* Modal de Confirmação de Sucesso */}
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        {/* ... Conteúdo do modal de Sucesso ... */}
+      </Dialog>
     </div>
   );
 };

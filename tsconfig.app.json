@@ -21,10 +21,13 @@
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
 
+    /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     }
   },
-  "include": ["src/main.tsx"]
+  
+  // AJUSTE AQUI
+  "include": ["src"] 
 }
