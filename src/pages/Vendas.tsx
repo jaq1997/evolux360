@@ -1,4 +1,4 @@
-// src/pages/Vendas.tsx - VERSÃO FINAL E CORRIGIDA
+// src/pages/Vendas.tsx - VERSÃO FINAL E PERFEITA
 
 import React, { useState, useMemo } from 'react';
 import { useData, Order } from '../context/DataContext';
@@ -6,11 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from '@/components/StatusBadge';
-import { Filter, Download, Search, PlusCircle, MoreHorizontal, Pencil } from 'lucide-react';
+import { Filter, Download, PlusCircle, MoreHorizontal, Pencil, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { OrderDetailsModal } from '@/components/OrderDetailsModal';
 import { AddNewOrderModal } from '@/components/AddNewOrderModal';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const Vendas = () => {
   const { orders, loading } = useData();
@@ -18,23 +21,7 @@ const Vendas = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [orderToEdit, setOrderToEdit] = useState<Order | null>(null); // ✅ ESTADO ADICIONADO
-
-  const handleOpenDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setIsDetailsModalOpen(true);
-  };
-
-  // ✅ FUNÇÕES ADICIONADAS PARA ABRIR O MODAL
-  const openEditModal = (order: Order) => {
-    setOrderToEdit(order);
-    setIsNewOrderModalOpen(true);
-  };
-
-  const openNewOrderModal = () => {
-    setOrderToEdit(null); // Garante que o modal abra em modo de criação
-    setIsNewOrderModalOpen(true);
-  };
+  const [orderToEdit, setOrderToEdit] = useState<Order | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
@@ -42,8 +29,27 @@ const Vendas = () => {
   const [paymentFilter, setPaymentFilter] = useState('todos');
   const [activeFilters, setActiveFilters] = useState({ status: 'todos', origin: 'todos', payment: 'todos' });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // ✅ AJUSTADO PARA 5
+
   const handleApplyFilters = () => {
     setActiveFilters({ status: statusFilter, origin: originFilter, payment: paymentFilter });
+    setCurrentPage(1);
+  };
+  
+  const handleOpenDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsModalOpen(true);
+  };
+  
+  const openEditModal = (order: Order) => {
+    setOrderToEdit(order);
+    setIsNewOrderModalOpen(true);
+  };
+
+  const openNewOrderModal = () => {
+    setOrderToEdit(null);
+    setIsNewOrderModalOpen(true);
   };
 
   const filteredOrders = useMemo(() => {
@@ -62,8 +68,15 @@ const Vendas = () => {
     });
   }, [orders, searchTerm, activeFilters]);
 
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredOrders, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
   if (loading) {
-    return <div>Carregando histórico de vendas...</div>;
+    return <div className="p-4">Carregando histórico de vendas...</div>;
   }
 
   return (
@@ -83,7 +96,7 @@ const Vendas = () => {
             <div className="space-y-1"><label className="text-sm font-medium text-gray-700">Status</label><Select value={statusFilter} onValueChange={setStatusFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos</SelectItem><SelectItem value="novo_pedido">Novo Pedido</SelectItem><SelectItem value="a_separar">A Separar</SelectItem><SelectItem value="enviado">Enviado</SelectItem><SelectItem value="concluido">Concluído</SelectItem><SelectItem value="cancelado">Cancelado</SelectItem></SelectContent></Select></div>
             <div className="space-y-1"><label className="text-sm font-medium text-gray-700">Canal</label><Select value={originFilter} onValueChange={setOriginFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos</SelectItem><SelectItem value="ecommerce">E-commerce</SelectItem><SelectItem value="whatsapp">WhatsApp</SelectItem><SelectItem value="loja_fisica">Loja Física</SelectItem></SelectContent></Select></div>
             <div className="space-y-1"><label className="text-sm font-medium text-gray-700">Pagamento</label><Select value={paymentFilter} onValueChange={setPaymentFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos</SelectItem><SelectItem value="credit_card">Crédito</SelectItem><SelectItem value="pix">PIX</SelectItem><SelectItem value="boleto">Boleto</SelectItem></SelectContent></Select></div>
-            <Button onClick={handleApplyFilters} className="bg-[#5932EA] hover:bg-[#4C2CA9] text-white w-full">Aplicar Filtros</Button>
+            <Button onClick={handleApplyFilters} variant="outline" className="w-full">Aplicar Filtros</Button>
           </div>
         </div>
 
@@ -92,21 +105,19 @@ const Vendas = () => {
             <h3 className="text-lg font-bold text-gray-900">Histórico de Vendas ({filteredOrders.length})</h3>
             <div className="flex items-center gap-2">
               <Button variant="outline"><Download className="mr-2 h-4 w-4" />Exportar</Button>
-              {/* ✅ AJUSTADO PARA USAR A NOVA FUNÇÃO */}
               <Button onClick={openNewOrderModal} className="bg-[#5932EA] hover:bg-[#4C2CA9] text-white"><PlusCircle className="mr-2 h-4 w-4" />Novo Pedido</Button>
             </div>
           </div>
           <Table>
             <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Cliente</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Valor</TableHead><TableHead className="text-center">Ações</TableHead></TableRow></TableHeader>
             <TableBody>
-              {filteredOrders.map((order) => (
+              {paginatedOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">#{order.id}</TableCell>
                   <TableCell>{order.description?.split(',')[0]?.replace('Cliente:', '').trim() || 'N/A'}</TableCell>
                   <TableCell><StatusBadge status={order.status} /></TableCell>
                   <TableCell className="text-right">R$ {order.total_price?.toFixed(2).replace('.', ',') || '0,00'}</TableCell>
                   <TableCell className="text-center">
-                    {/* ✅ MENU DE AÇÕES ATUALIZADO */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon"><MoreHorizontal className="h-5 w-5" /></Button>
@@ -123,11 +134,36 @@ const Vendas = () => {
               ))}
             </TableBody>
           </Table>
+          
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       {isDetailsModalOpen && <OrderDetailsModal isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} order={selectedOrder} />}
-      {/* ✅ CORREÇÃO FINAL: Passando a prop 'orderToEdit' */}
       <AddNewOrderModal isOpen={isNewOrderModalOpen} onClose={() => setIsNewOrderModalOpen(false)} orderToEdit={orderToEdit} />
     </>
   );
