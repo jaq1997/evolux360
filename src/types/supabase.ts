@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
@@ -17,10 +19,10 @@ export type Database = {
           customer_id: string | null
           description: string | null
           id: number
-          notes: string | null // ✅ ADICIONADO
+          notes: string | null
           origin: string | null
           payment_method: string | null
-          product_id: number | null // ✅ ADICIONADO
+          product_id: number | null
           status: string | null
           total_price: number | null
           user_id: string
@@ -29,10 +31,10 @@ export type Database = {
           customer_id?: string | null
           description?: string | null
           id?: number
-          notes?: string | null // ✅ ADICIONADO
+          notes?: string | null
           origin?: string | null
           payment_method?: string | null
-          product_id?: number | null // ✅ ADICIONADO
+          product_id?: number | null
           status?: string | null
           total_price?: number | null
           user_id?: string
@@ -41,19 +43,29 @@ export type Database = {
           customer_id?: string | null
           description?: string | null
           id?: number
-          notes?: string | null // ✅ ADICIONADO
+          notes?: string | null
           origin?: string | null
           payment_method?: string | null
-          product_id?: number | null // ✅ ADICIONADO
+          product_id?: number | null
           status?: string | null
           total_price?: number | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_orders_product_id"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
+          brand: string | null
           category: string | null
+          cost: number | null
           created_at: string
           description: string | null
           id: number
@@ -62,10 +74,13 @@ export type Database = {
           price: number | null
           sku: string | null
           stock_quantity: number | null
+          supplier: string | null
           variations: Json | null
         }
         Insert: {
+          brand?: string | null
           category?: string | null
+          cost?: number | null
           created_at?: string
           description?: string | null
           id?: number
@@ -74,10 +89,13 @@ export type Database = {
           price?: number | null
           sku?: string | null
           stock_quantity?: number | null
+          supplier?: string | null
           variations?: Json | null
         }
         Update: {
+          brand?: string | null
           category?: string | null
+          cost?: number | null
           created_at?: string
           description?: string | null
           id?: number
@@ -86,6 +104,7 @@ export type Database = {
           price?: number | null
           sku?: string | null
           stock_quantity?: number | null
+          supplier?: string | null
           variations?: Json | null
         }
         Relationships: []
@@ -130,9 +149,8 @@ export type Database = {
   }
 }
 
-// O resto do código auxiliar de tipos permanece o mesmo...
-
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<

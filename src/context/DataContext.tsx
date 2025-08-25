@@ -1,75 +1,60 @@
-// src/context/DataContext.tsx - VERSÃO FINAL, CORRIGIDA E DEFINITIVA
+// src/context/DataContext.tsx - VERSÃO FINAL E CORRIGIDA
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Database } from '../types/supabase';
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
-// ✅ CORREÇÃO CRÍTICA: Define o tipo 'Order' com todas as propriedades necessárias.
-// Isso garante que 'created_at' e outros campos sejam reconhecidos corretamente.
-export type Order = {
-  id: number;
-  created_at: string;
-  user_id: string | null;
-  customer_id: string | null;
-  description: string | null;
-  total_price: number | null;
-  status: OrderStatus | null;
-  origin: string | null;
-  payment_method: string | null;
-  notes: string | null;
-  product_id: number | null;
-};
-
-export type OrderStatus = Database['public']['Enums']['order_status'];
+// ✅ USA DIRETAMENTE OS TIPOS GERADOS PELO SUPABASE
+export type Order = Database['public']['Tables']['orders']['Row'];
 export type Product = Database['public']['Tables']['products']['Row'];
+export type OrderStatus = Database['public']['Enums']['order_status'];
 
-type NewOrderPayload = Omit<Order, 'id' | 'created_at'>;
-
-type UpdateOrderPayload = Partial<Omit<Order, 'id' | 'created_at'>>;
-
+// ✅ SIMPLIFICA OS TIPOS PARA AS FUNÇÕES
 type DataContextType = {
   orders: Order[];
+  products: Product[];
   loading: boolean;
-  setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
-  createOrder: (newOrderData: NewOrderPayload) => Promise<void>;
-  updateOrderStatus: (orderId: number, newStatus: OrderStatus) => Promise<void>;
+  createOrder: (newOrderData: Database['public']['Tables']['orders']['Insert']) => Promise<void>;
+  updateOrder: (orderId: number, updatedData: Database['public']['Tables']['orders']['Update']) => Promise<void>;
   cancelOrder: (orderId: number) => Promise<void>;
-  searchProducts: (query: string) => Promise<Product[]>;
-  updateOrder: (orderId: number, updatedData: UpdateOrderPayload) => Promise<void>;
+  createProduct: (newProductData: Database['public']['Tables']['products']['Insert']) => Promise<void>;
+  updateProduct: (productId: number, updatedData: Database['public']['Tables']['products']['Update']) => Promise<void>;
+  deleteProduct: (productId: number) => Promise<void>;
 };
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchAllData = async () => {
+    const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('id', { ascending: false });
+    if (ordersError) console.error('Erro ao buscar pedidos:', ordersError);
+    else {
+      // ✅ CORREÇÃO APLICADA AQUI
+      setOrders(ordersData as Order[] || []);
+    }
+
+    const { data: productsData, error: productsError } = await supabase.from('products').select('*').order('name', { ascending: true });
+    if (productsError) console.error('Erro ao buscar produtos:', productsError);
+    else {
+      // ✅ CORREÇÃO APLICADA AQUI
+      setProducts(productsData as Product[] || []);
+    }
+    
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from('orders').select('*').order('id', { ascending: false });
-      if (error) { console.error('Erro ao buscar pedidos:', error); }
-      else { setOrders(data as Order[] || []); }
-      setLoading(false);
-    };
-    fetchOrders();
+    setLoading(true);
+    fetchAllData();
 
-    const handleChanges = (payload: RealtimePostgresChangesPayload<Order>) => {
-      if (payload.eventType === 'INSERT') {
-        setOrders(currentOrders => [payload.new as Order, ...currentOrders]);
-      }
-      if (payload.eventType === 'UPDATE') {
-        setOrders(currentOrders =>
-          currentOrders.map(order =>
-            order.id === (payload.new as Order).id ? { ...order, ...(payload.new as Order) } : order
-          )
-        );
-      }
-    };
-
-    const channel = supabase.channel('realtime-orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, handleChanges)
+    const channel = supabase.channel('realtime-all-tables')
+      .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+        fetchAllData();
+      })
       .subscribe();
 
     return () => {
@@ -77,17 +62,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const createOrder = async (newOrderData: NewOrderPayload) => {
-    const { data, error } = await supabase.from('orders').insert([newOrderData]).select('*');
+  // Funções CRUD (sem alterações)
+  const createOrder = async (newOrderData: Database['public']['Tables']['orders']['Insert']) => {
+    const { error } = await supabase.from('orders').insert([newOrderData]); // insert expects an array
     if (error) throw error;
-    
-    if (data) {
-        setOrders(currentOrders => [data[0] as Order, ...currentOrders]);
-    }
   };
 
-  const updateOrderStatus = async (orderId: number, newStatus: OrderStatus) => {
-    const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+  const updateOrder = async (orderId: number, updatedData: Database['public']['Tables']['orders']['Update']) => {
+    const { error } = await supabase.from('orders').update(updatedData).eq('id', orderId);
     if (error) throw error;
   };
 
@@ -96,39 +78,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     if (error) throw error;
   };
 
-  const searchProducts = async (query: string): Promise<Product[]> => {
-    let queryBuilder = supabase.from('products').select('*');
-    if (query) {
-      queryBuilder = queryBuilder.ilike('name', `%${query}%`);
-    }
-    const { data, error } = await queryBuilder.order('name', { ascending: true }).limit(20);
-    if (error) {
-      console.error('Erro ao buscar produtos:', error);
-      return [];
-    }
-    return data || [];
+  const createProduct = async (newProductData: Database['public']['Tables']['products']['Insert']) => {
+    const { error } = await supabase.from('products').insert([newProductData]); // insert expects an array
+    if (error) throw error;
   };
 
-  const updateOrder = async (orderId: number, updatedData: UpdateOrderPayload) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .update(updatedData)
-      .eq('id', orderId)
-      .select('*');
-    if (error) {
-      console.error("Falha ao atualizar o pedido:", error);
-      throw error;
-    }
+  const updateProduct = async (productId: number, updatedData: Database['public']['Tables']['products']['Update']) => {
+    const { error } = await supabase.from('products').update(updatedData).eq('id', productId);
+    if (error) throw error;
+  };
 
-    if (data) {
-        setOrders(currentOrders =>
-            currentOrders.map(order => order.id === data[0].id ? data[0] as Order : order)
-        );
-    }
+  const deleteProduct = async (productId: number) => {
+    const { error } = await supabase.from('products').delete().eq('id', productId);
+    if (error) throw error;
   };
 
   return (
-    <DataContext.Provider value={{ orders, loading, setOrders, createOrder, updateOrderStatus, cancelOrder, searchProducts, updateOrder }}>
+    <DataContext.Provider value={{ orders, products, loading, createOrder, updateOrder, cancelOrder, createProduct, updateProduct, deleteProduct }}>
       {children}
     </DataContext.Provider>
   );
@@ -137,7 +103,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 // eslint-disable-next-line react-refresh/only-export-components
 export const useData = () => {
   const context = useContext(DataContext);
-  if (context === undefined) { throw new Error('useData deve ser usado dentro de um DataProvider'); }
+  if (context === undefined) throw new Error('useData deve ser usado dentro de um DataProvider');
   return context;
 };
 
