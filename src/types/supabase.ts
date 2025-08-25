@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
@@ -19,8 +17,10 @@ export type Database = {
           customer_id: string | null
           description: string | null
           id: number
+          notes: string | null // ✅ ADICIONADO
           origin: string | null
           payment_method: string | null
+          product_id: number | null // ✅ ADICIONADO
           status: string | null
           total_price: number | null
           user_id: string
@@ -29,8 +29,10 @@ export type Database = {
           customer_id?: string | null
           description?: string | null
           id?: number
+          notes?: string | null // ✅ ADICIONADO
           origin?: string | null
           payment_method?: string | null
+          product_id?: number | null // ✅ ADICIONADO
           status?: string | null
           total_price?: number | null
           user_id?: string
@@ -39,8 +41,10 @@ export type Database = {
           customer_id?: string | null
           description?: string | null
           id?: number
+          notes?: string | null // ✅ ADICIONADO
           origin?: string | null
           payment_method?: string | null
+          product_id?: number | null // ✅ ADICIONADO
           status?: string | null
           total_price?: number | null
           user_id?: string
@@ -126,8 +130,9 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+// O resto do código auxiliar de tipos permanece o mesmo...
 
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<

@@ -1,18 +1,20 @@
+// src/App.tsx - VOLTANDO AO ORIGINAL FUNCIONAL
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import AutomacaoInteligente from "./pages/features/AutomacaoInteligente";
-
-// AQUI ESTÁ A MUDANÇA PRINCIPAL: "import DataProvider" sem as chaves {}
 import DataProvider from "./context/DataContext";
 
 const queryClient = new QueryClient();
@@ -42,8 +44,9 @@ const App = () => (
             </Route>
 
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard/*" element={<Dashboard />} />
-            
+            {/* A rota do dashboard volta a ser como era */}
+            <Route path="/dashboard/*" element={<Dashboard />} /> 
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

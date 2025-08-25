@@ -19,8 +19,10 @@ export type Database = {
           customer_id: string | null
           description: string | null
           id: number
+          notes: string | null
           origin: string | null
           payment_method: string | null
+          product_id: number | null
           status: string | null
           total_price: number | null
           user_id: string
@@ -29,8 +31,10 @@ export type Database = {
           customer_id?: string | null
           description?: string | null
           id?: number
+          notes?: string | null
           origin?: string | null
           payment_method?: string | null
+          product_id?: number | null
           status?: string | null
           total_price?: number | null
           user_id?: string
@@ -39,8 +43,10 @@ export type Database = {
           customer_id?: string | null
           description?: string | null
           id?: number
+          notes?: string | null
           origin?: string | null
           payment_method?: string | null
+          product_id?: number | null
           status?: string | null
           total_price?: number | null
           user_id?: string

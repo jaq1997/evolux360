@@ -1,0 +1,44 @@
+// src/components/StatusBadge.tsx - VERSÃO FINAL E CONSISTENTE
+
+import React from 'react';
+import { Badge } from './ui/badge';
+
+interface StatusBadgeProps {
+  status: string | null;
+}
+
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+  const getBadgeDetails = () => {
+    switch (status) {
+      // Status do Kanban
+      case 'novo_pedido':
+        return { text: 'Novo Pedido', className: 'text-blue-600 border-blue-600 bg-blue-50' };
+      case 'a_separar':
+        return { text: 'A Separar', className: 'text-cyan-600 border-cyan-600 bg-cyan-50' };
+      case 'separado':
+        return { text: 'Separado', className: 'text-indigo-600 border-indigo-600 bg-indigo-50' };
+      case 'a_enviar':
+        return { text: 'Pronto p/ Envio', className: 'text-purple-600 border-purple-600 bg-purple-50' };
+      case 'enviado':
+        return { text: 'Enviado', className: 'text-yellow-600 border-yellow-600 bg-yellow-50' };
+      
+      // Status Finais
+      case 'concluido':
+        return { text: 'Concluído', className: 'text-green-600 border-green-600 bg-green-50' };
+      case 'cancelado':
+        return { text: 'Cancelado', className: 'text-red-600 border-red-600 bg-red-50' };
+      
+      // Fallback
+      default:
+        return { text: status || 'Indefinido', className: 'text-gray-600 border-gray-600 bg-gray-50' };
+    }
+  };
+
+  const { text, className } = getBadgeDetails();
+
+  return (
+    <Badge variant="outline" className={className}>
+      {text}
+    </Badge>
+  );
+};
