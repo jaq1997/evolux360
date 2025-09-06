@@ -1,5 +1,3 @@
-// src/components/AddNewOrderModal.tsx - VERSÃO FINAL E DEFINITIVA
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useData, Order, Product, OrderStatus } from '../context/DataContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -30,7 +28,7 @@ export function AddNewOrderModal({ isOpen, onClose, orderToEdit }: { isOpen: boo
   const [origin, setOrigin] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [discount, setDiscount] = useState(''); // ✅ ADICIONADO: Estado para o desconto
+  const [discount, setDiscount] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,11 +48,11 @@ export function AddNewOrderModal({ isOpen, onClose, orderToEdit }: { isOpen: boo
       setLastName(lNameParts.join(' ') || '');
       setSelectedProductId(orderToEdit.product_id?.toString());
       setTotalPrice(orderToEdit.total_price?.toString() || '');
-      setStatus(orderToEdit.status || 'novo_pedido');
+      // ✅ A CORREÇÃO ESTÁ AQUI: Dizemos ao TypeScript para confiar que este status é válido.
+      setStatus((orderToEdit.status as OrderStatus) || 'novo_pedido');
       setOrigin(orderToEdit.origin || '');
       setNotes(orderToEdit.notes || '');
       setPaymentMethod(orderToEdit.payment_method || '');
-      // ✅ AQUI VOCÊ PODE ADICIONAR A LÓGICA PARA RECUPERAR O DESCONTO SE NECESSÁRIO
     } else {
       setFirstName('');
       setLastName('');
@@ -64,11 +62,10 @@ export function AddNewOrderModal({ isOpen, onClose, orderToEdit }: { isOpen: boo
       setOrigin('');
       setNotes('');
       setPaymentMethod('');
-      setDiscount(''); // ✅ ADICIONADO
+      setDiscount('');
     }
   }, [isEditMode, orderToEdit, fetchInitialProducts]);
   
-  // ✅ FUNÇÃO PARA LIDAR COM A SELEÇÃO DO PRODUTO E AJUSTAR O PREÇO
   const handleProductChange = (productId: string) => {
     setSelectedProductId(productId);
     const selectedProduct = products.find(p => p.id.toString() === productId);
@@ -82,7 +79,6 @@ export function AddNewOrderModal({ isOpen, onClose, orderToEdit }: { isOpen: boo
     }
   };
   
-  // ✅ FUNÇÃO PARA LIDAR COM O DESCONTO E ATUALIZAR O PREÇO TOTAL
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDiscount = e.target.value;
     setDiscount(newDiscount);
@@ -163,7 +159,6 @@ export function AddNewOrderModal({ isOpen, onClose, orderToEdit }: { isOpen: boo
               <FormField label="Sobrenome"><Input value={lastName} onChange={(e) => setLastName(e.target.value)} /></FormField>
             </div>
             <FormField label="Selecione o produto">
-              {/* ✅ MUDANÇA: usa a nova função handleProductChange */}
               <Select value={selectedProductId} onValueChange={handleProductChange}>
                 <SelectTrigger><SelectValue placeholder="Selecione ou busque um produto..." /></SelectTrigger>
                 <SelectContent>
@@ -174,7 +169,6 @@ export function AddNewOrderModal({ isOpen, onClose, orderToEdit }: { isOpen: boo
               </Select>
             </FormField>
             <div className="grid grid-cols-2 gap-4">
-              {/* ✅ CAMPO DE DESCONTO ADICIONADO */}
               <FormField label="Desconto (R$)"><Input type="number" value={discount} onChange={handleDiscountChange} /></FormField>
               <FormField label="Valor do pedido (R$)"><Input type="number" value={totalPrice} onChange={(e) => setTotalPrice(e.target.value)} /></FormField>
             </div>
@@ -202,7 +196,6 @@ export function AddNewOrderModal({ isOpen, onClose, orderToEdit }: { isOpen: boo
               </Select>
             </FormField>
             <FormField label="Forma de Pagamento">
-              {/* ✅ MUDANÇA: Input substituído por Select */}
               <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>

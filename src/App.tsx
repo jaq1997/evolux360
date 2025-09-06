@@ -1,4 +1,4 @@
-// src/App.tsx - VOLTANDO AO ORIGINAL FUNCIONAL
+// src/App.tsx - VERSÃO FINAL COM IMPORT CORRETO
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -15,6 +15,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import AutomacaoInteligente from "./pages/features/AutomacaoInteligente";
+
+// ✅ CORREÇÃO FINAL: O import volta a ser SEM chaves, pois o DataContext da produção usa "export default".
 import DataProvider from "./context/DataContext";
 
 const queryClient = new QueryClient();
@@ -42,11 +44,8 @@ const App = () => (
               <Route path="products" element={<Products />} />
               <Route path="features/automacao-inteligente" element={<AutomacaoInteligente />} />
             </Route>
-
             <Route path="/auth" element={<Auth />} />
-            {/* A rota do dashboard volta a ser como era */}
-            <Route path="/dashboard/*" element={<Dashboard />} /> 
-
+            <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
@@ -56,3 +55,4 @@ const App = () => (
 );
 
 export default App;
+
