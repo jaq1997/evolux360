@@ -1,7 +1,8 @@
-// src/pages/Estoque.tsx - VERSÃO FINAL COM CORREÇÃO DO "SALTO" DO LAYOUT
+// src/pages/Estoque.tsx - VERSÃO FINAL E COMPLETA
 
-import { useState, useMemo } from "react";
-import { useData, Product } from '../context/DataContext';
+import { useState, useMemo, useRef } from "react";
+import { useData } from '../context/DataContext';
+import { Product } from '../context/DataContext'; // Importando Product do DataContext
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +12,13 @@ import { AddProductModal } from "@/components/AddProductModal";
 import { EditProductModal } from "@/components/EditProductModal";
 import { DeleteProductModal } from "@/components/DeleteProductModal";
 import * as XLSX from 'xlsx';
+import axios from 'axios';
+import { toast } from 'sonner'; // Seu projeto já tem isso configurado no App.tsx!
 
 const Estoque = () => {
-  const { products, loading } = useData();
+  // Agora usamos 'fetchAllData' que existe no seu contexto! O erro deve sumir.
+  const { products, loading, fetchAllData } = useData(); 
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
@@ -24,11 +29,44 @@ const Estoque = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleExport = () => {
     const worksheet = XLSX.utils.json_to_sheet(products);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Produtos");
     XLSX.writeFile(workbook, "Estoque_Produtos.xlsx");
+  };
+
+  // Lógica de importação usando axios e sonner
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const toastId = toast.loading("Importando produtos...");
+
+    try {
+      const response = await axios.post('http://localhost:8000/import-products', formData );
+      
+      const count = response.data.imported_count || 0;
+      toast.success(`${count} produtos importados com sucesso!`, { id: toastId });
+      
+      // Chama a função do seu contexto para garantir que a UI atualize!
+      await fetchAllData(); 
+      
+    } catch (error) {
+      toast.error('Erro ao importar o arquivo.', { id: toastId });
+      console.error("Erro detalhado na importação:", error);
+    } finally {
+        if(e.target) e.target.value = '';
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   const getStatusBadge = (stock: number | null) => {
@@ -67,14 +105,21 @@ const Estoque = () => {
 
   return (
     <div className="space-y-6">
+      <input
+        type="file"
+        accept=".xlsx, .xls"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-        {/* ✅ AQUI ESTÁ A CORREÇÃO CRÍTICA DO LAYOUT */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <h3 className="text-lg font-bold text-gray-900 whitespace-nowrap">
             Lista de Produtos ({filteredProducts.length})
           </h3>
           <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 w-full">
-            <Button variant="outline">
+            <Button variant="outline" onClick={triggerFileInput}>
               <Upload className="w-4 h-4 mr-2" />
               Importar
             </Button>

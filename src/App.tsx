@@ -17,7 +17,7 @@ import Products from "./pages/Products";
 import AutomacaoInteligente from "./pages/features/AutomacaoInteligente";
 
 // ✅ CORREÇÃO FINAL: O import volta a ser SEM chaves, pois o DataContext da produção usa "export default".
-import DataProvider from "./context/DataContext";
+import { DataProvider } from "./context/DataContext";
 
 const queryClient = new QueryClient();
 
