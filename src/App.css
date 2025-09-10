@@ -40,3 +40,28 @@
 .read-the-docs {
   color: #888;
 }
+
+.step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: #9ca3af; /* Cinza por padrão */
+  border: 2px solid #d1d5db;
+  transition: all 0.3s ease;
+}
+
+.step-icon.active {
+  color: white;
+  background-color: #8b5cf6; /* Roxo Ativo */
+  border-color: #8b5cf6;
+}
+
+.step-icon.completed {
+  color: white;
+  background-color: #8b5cf6; /* Roxo Completado (em vez de verde) */
+  border-color: #8b5cf6;
+}

@@ -51,21 +51,11 @@ export type Database = {
           total_price?: number | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_orders_product_id"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       products: {
         Row: {
-          brand: string | null
           category: string | null
-          cost: number | null
           created_at: string
           description: string | null
           id: number
@@ -74,13 +64,10 @@ export type Database = {
           price: number | null
           sku: string | null
           stock_quantity: number | null
-          supplier: string | null
           variations: Json | null
         }
         Insert: {
-          brand?: string | null
           category?: string | null
-          cost?: number | null
           created_at?: string
           description?: string | null
           id?: number
@@ -89,13 +76,10 @@ export type Database = {
           price?: number | null
           sku?: string | null
           stock_quantity?: number | null
-          supplier?: string | null
           variations?: Json | null
         }
         Update: {
-          brand?: string | null
           category?: string | null
-          cost?: number | null
           created_at?: string
           description?: string | null
           id?: number
@@ -104,7 +88,6 @@ export type Database = {
           price?: number | null
           sku?: string | null
           stock_quantity?: number | null
-          supplier?: string | null
           variations?: Json | null
         }
         Relationships: []

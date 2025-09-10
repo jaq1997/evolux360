@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from '@/components/StatusBadge';
-import { Filter, Download, PlusCircle, MoreHorizontal, Pencil, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Filter, Download, Plus, MoreHorizontal, Pencil, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -23,7 +23,7 @@ const Vendas = () => {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [originFilter, setOriginFilter] = useState('todos');
   const [paymentFilter, setPaymentFilter] = useState('todos');
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -31,7 +31,7 @@ const Vendas = () => {
     setSelectedOrder(order);
     setIsDetailsModalOpen(true);
   };
-  
+
   const openEditModal = (order: Order) => {
     setOrderToEdit(order);
     setIsNewOrderModalOpen(true);
@@ -48,11 +48,11 @@ const Vendas = () => {
       const matchesSearch = searchTerm === '' ||
         order.id.toString().includes(lowerCaseSearchTerm) ||
         order.description?.toLowerCase().includes(lowerCaseSearchTerm);
-      
+
       const matchesStatus = statusFilter === 'todos' || order.status === statusFilter;
       const matchesOrigin = originFilter === 'todos' || order.origin === originFilter;
       const matchesPayment = paymentFilter === 'todos' || order.payment_method === paymentFilter;
-      
+
       return matchesSearch && matchesStatus && matchesOrigin && matchesPayment;
     });
   }, [orders, searchTerm, statusFilter, originFilter, paymentFilter]);
@@ -63,10 +63,10 @@ const Vendas = () => {
   }, [filteredOrders, currentPage, itemsPerPage]);
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  
+
   const searchResults = useMemo(() => {
       if (!searchTerm) return [];
-      return orders.filter(order => 
+      return orders.filter(order =>
           order.id.toString().includes(searchTerm.toLowerCase()) ||
           order.description?.toLowerCase().includes(searchTerm.toLowerCase())
       ).slice(0, 5); // Limita a 5 resultados no dropdown
@@ -84,16 +84,16 @@ const Vendas = () => {
             <Filter className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-bold text-gray-900">Filtros e Busca</h3>
           </div>
-          
+
           <Popover open={searchTerm.length > 0 && searchResults.length > 0}>
             <PopoverTrigger asChild>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input 
-                  placeholder="Buscar por ID, cliente ou produto..." 
-                  className="pl-10" 
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)} 
+                <Input
+                  placeholder="Buscar por ID, cliente ou produto..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </PopoverTrigger>
@@ -120,7 +120,7 @@ const Vendas = () => {
             <h3 className="text-lg font-bold text-gray-900">Histórico de Vendas ({filteredOrders.length})</h3>
             <div className="flex items-center gap-2">
               <Button variant="outline"><Download className="mr-2 h-4 w-4" />Exportar</Button>
-              <Button onClick={openNewOrderModal} className="bg-[#5932EA] hover:bg-[#4C2CA9] text-white"><PlusCircle className="mr-2 h-4 w-4" />Novo Pedido</Button>
+              <Button onClick={openNewOrderModal} className="bg-[#5932EA] hover:bg-[#4C2CA9] text-white"><Plus className="mr-2 h-4 w-4" />Novo Pedido</Button>
             </div>
           </div>
           <Table>
@@ -145,7 +145,7 @@ const Vendas = () => {
               ))}
             </TableBody>
           </Table>
-          
+
           <div className="flex items-center justify-end space-x-2 py-4">
             <div className="text-sm text-muted-foreground">Página {currentPage} de {totalPages}</div>
             <div className="space-x-2">
