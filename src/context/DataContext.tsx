@@ -1,69 +1,89 @@
 // src/context/DataContext.tsx
+import React, { createContext, useState, useCallback, useContext, useEffect } from "react";
+import { supabase } from "../integrations/supabase/client";
+import type { Database, Json } from "../types/supabase";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { supabase } from '../integrations/supabase/client';
-import { Tables } from '../types/supabase';
+// Tipos gerados pelo Supabase
+export type Order = Database["public"]["Tables"]["orders"]["Row"];
+export type NewOrderPayload = Database["public"]["Tables"]["orders"]["Insert"];
+export type Product = Database["public"]["Tables"]["products"]["Row"];
+export type ProductVariant = Database["public"]["Tables"]["product_variants"]["Row"];
+export type Size = Database["public"]["Tables"]["sizes"]["Row"];
+export type Color = Database["public"]["Tables"]["colors"]["Row"];
 
-export type Order = Tables<'orders'>;
-export type Product = Tables<'products'>;
-export type Size = Tables<'sizes'>;
-export type Color = Tables<'colors'>;
-export type ProductVariant = Tables<'product_variants'>;
-export type NewOrderPayload = Tables<'orders', 'Insert'>;
+// Extensão do tipo de variante com detalhes
+export type ProductVariantWithDetails = ProductVariant & {
+  sizes?: Size;
+  colors?: Color;
+};
 
-// Adicionando as novas funções à tipagem do contexto
+// Tipos para address e items (jsonb)
+export interface Address {
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+export interface OrderItem {
+  product_id: number;
+  quantity: number;
+  price: number;
+  product_name: string;
+  variant_id?: string | null;
+  size_name?: string;
+  color_name?: string;
+}
+
+// Payload estendido para o app (frontend trabalha com objetos tipados)
+export type NewOrderPayloadExtended = Omit<NewOrderPayload, "address" | "items"> & {
+  address: Address;
+  items: OrderItem[];
+};
+
 type DataContextType = {
   orders: Order[];
   products: Product[];
+  productVariants: ProductVariant[];
   sizes: Size[];
   colors: Color[];
-  productVariants: ProductVariant[];
-  loading: boolean;
   fetchAllData: () => Promise<void>;
-  createOrder: (newOrderData: NewOrderPayload) => Promise<void>;
-  searchProducts: (term: string) => Promise<Product[]>;
-  getProductVariantsWithDetails: (productId: number) => Promise<any[]>;
+  createOrder: (newOrderData: NewOrderPayloadExtended) => Promise<void>;
+  getProductVariantsWithDetails: (productId: number) => Promise<ProductVariantWithDetails[]>;
 };
 
-const DataContext = createContext<DataContextType | undefined>(undefined);
+export const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider = ({ children }: { children: ReactNode }) => {
+export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productVariants, setProductVariants] = useState<ProductVariant[]>([]);
   const [sizes, setSizes] = useState<Size[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
-  const [productVariants, setProductVariants] = useState<ProductVariant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  // Bloco completo, sem abreviações
+  // Buscar todos os dados do Supabase
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [
-        { data: ordersData, error: ordersError },
-        { data: productsData, error: productsError },
-        { data: sizesData, error: sizesError },
-        { data: colorsData, error: colorsError },
-        { data: variantsData, error: variantsError },
-      ] = await Promise.all([
-        supabase.from('orders').select('*'),
-        supabase.from('products').select('*'),
-        supabase.from('sizes').select('*'),
-        supabase.from('colors').select('*'),
-        supabase.from('product_variants').select('*'),
-      ]);
 
-      if (ordersError) throw ordersError;
-      if (productsError) throw productsError;
-      if (sizesError) throw sizesError;
-      if (colorsError) throw colorsError;
-      if (variantsError) throw variantsError;
+      const { data: ordersData } = await supabase.from("orders").select("*");
+      if (ordersData) setOrders(ordersData);
 
-      setOrders(ordersData || []);
-      setProducts(productsData || []);
-      setSizes(sizesData || []);
-      setColors(colorsData || []);
-      setProductVariants(variantsData || []);
+      const { data: productsData } = await supabase.from("products").select("*");
+      if (productsData) setProducts(productsData);
+
+      const { data: variantsData } = await supabase.from("product_variants").select("*");
+      if (variantsData) setProductVariants(variantsData);
+
+      const { data: sizesData } = await supabase.from("sizes").select("*");
+      if (sizesData) setSizes(sizesData);
+
+      const { data: colorsData } = await supabase.from("colors").select("*");
+      if (colorsData) setColors(colorsData);
 
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
@@ -72,59 +92,87 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Bloco completo, sem abreviações
-  useEffect(() => {
-    fetchAllData();
-    const channel = supabase.channel('realtime-all-tables')
-      .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-        fetchAllData();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+  // Criar pedido (conversão automática de objetos -> Json)
+  const createOrder = async (newOrderData: NewOrderPayloadExtended) => {
+    const payload: NewOrderPayload = {
+      ...newOrderData,
+      address: newOrderData.address as unknown as Json,
+      items: newOrderData.items as unknown as Json,
     };
-  }, [fetchAllData]);
 
-  const createOrder = async (newOrderData: NewOrderPayload) => {
-    const { error } = await supabase.from('orders').insert([newOrderData as any]);
+    const { error } = await supabase.from("orders").insert([payload]);
     if (error) {
-      console.error('Erro ao criar pedido:', error);
+      console.error("Erro ao criar pedido:", error.message);
       throw error;
     }
+    await fetchAllData();
   };
 
-  const searchProducts = async (term: string): Promise<Product[]> => {
-    const searchTerm = term.toLowerCase();
-    return products.filter(product =>
-      product.name?.toLowerCase().includes(searchTerm) ||
-      product.sku?.toLowerCase().includes(searchTerm)
-    );
-  };
-  
-  const getProductVariantsWithDetails = async (productId: number): Promise<any[]> => {
+  const getProductVariantsWithDetails = async (
+    productId: number
+  ): Promise<ProductVariantWithDetails[]> => {
     const variants = productVariants.filter(v => v.product_id === productId);
     return variants.map(variant => ({
       ...variant,
       sizes: sizes.find(s => s.id === variant.size_id),
-      colors: colors.find(c => c.id === variant.color_id)
+      colors: colors.find(c => c.id === variant.color_id),
     }));
   };
 
+  // 🔹 Fetch automático quando o usuário estiver logado
+  useEffect(() => {
+    const fetchOnLogin = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        await fetchAllData();
+      }
+    };
+
+    fetchOnLogin();
+
+    // Listener para alterações de sessão (login/logout)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchAllData();
+      } else {
+        // Se logout, limpar os dados
+        setOrders([]);
+        setProducts([]);
+        setProductVariants([]);
+        setSizes([]);
+        setColors([]);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [fetchAllData]);
+
   return (
-    <DataContext.Provider value={{
-      orders, products, sizes, colors, productVariants, loading, fetchAllData, createOrder,
-      searchProducts, getProductVariantsWithDetails
-    }}>
+    <DataContext.Provider
+      value={{
+        orders,
+        products,
+        productVariants,
+        sizes,
+        colors,
+        fetchAllData,
+        createOrder,
+        getProductVariantsWithDetails,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
 };
 
-export const useData = () => {
+// Hook para consumir o contexto
+export const useData = (): DataContextType => {
   const context = useContext(DataContext);
-  if (context === undefined) {
-    throw new Error('useData deve ser usado dentro de um DataProvider');
-  }
+  if (!context) throw new Error("useData must be used within a DataProvider");
   return context;
 };
