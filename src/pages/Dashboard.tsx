@@ -1,3 +1,5 @@
+// src/pages/Dashboard.tsx - VERSÃO COMPLETA E CORRIGIDA
+
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation, Link, Routes, Route } from "react-router-dom";
 import { Session } from "@supabase/supabase-js";
@@ -9,7 +11,7 @@ import CRM from "./CRM";
 import Estoque from "./Estoque";
 import Financeiro from "./Financeiro";
 import Vendas from "./Vendas";
-import { LogOut, BarChart3, ShoppingCart, Users, Package, DollarSign, ExternalLink } from "lucide-react";
+import { LogOut, BarChart3, ShoppingCart, Users, Package, DollarSign } from "lucide-react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -35,82 +37,37 @@ const DashboardCard = ({ title, children }: { title: string, children: React.Rea
 );
 
 const menuItems = [
-  { title: "Dashboard", icon: BarChart3, url: "/dashboard" }, 
-  { title: "Vendas", icon: ShoppingCart, url: "/dashboard/vendas" }, 
-  { title: "CRM", icon: Users, url: "/dashboard/crm" }, 
-  { title: "Estoque", icon: Package, url: "/dashboard/estoque" }, 
+  { title: "Dashboard", icon: BarChart3, url: "/dashboard" },
+  { title: "Vendas", icon: ShoppingCart, url: "/dashboard/vendas" },
+  { title: "CRM", icon: Users, url: "/dashboard/crm" },
+  { title: "Estoque", icon: Package, url: "/dashboard/estoque" },
   { title: "Financeiro", icon: DollarSign, url: "/dashboard/financeiro" }
 ];
 
 const DashboardHome = () => {
-  const { orders } = useData();
+  const { orders, dashboardStats, loading } = useData();
 
-  // Função para extrair nome do cliente (com fallback para os campos antigos)
   const getCustomerName = (order: OrderWithCustomer): string => {
-    // Primeiro, tenta pegar do relacionamento com customers
-    if (order.customers?.name) {
-      return order.customers.name;
-    }
-    
-    // Fallback: se ainda tem customer_name no order
-    if (order.customer_name) {
-      return order.customer_name;
-    }
-    
-    // Fallback: tenta extrair da description (dados antigos)
-    if (order.description) {
-      const patterns = [
-        /Cliente:\s*([^,\n\r]+)/i,
-        /Nome:\s*([^,\n\r]+)/i,
-        /Customer:\s*([^,\n\r]+)/i,
-        /Client:\s*([^,\n\r]+)/i
-      ];
-
-      for (const pattern of patterns) {
-        const match = order.description.match(pattern);
-        if (match && match[1]) {
-          return match[1].trim();
-        }
-      }
-
-      const lines = order.description.split(/[,\n\r]/).filter(line => line.trim());
-      if (lines.length > 0) {
-        const firstLine = lines[0].replace(/^(Cliente:|Nome:|Customer:|Client:)/i, '').trim();
-        if (firstLine) {
-          return firstLine;
-        }
-      }
-    }
-
+    if (order.customers?.name) return order.customers.name;
+    if (order.customer_name) return order.customer_name;
     return 'Cliente não informado';
   };
 
-  const dashboardStats = useMemo(() => {
-    if (!orders || orders.length === 0) {
-      return { 
-        receitaTotal: "0,00", 
-        totalPedidos: "0", 
-        ticketMedio: "0,00" 
-      };
-    }
-
-    const receitaTotal = orders.reduce((acc, order) => acc + (order.total_price || 0), 0);
-    const totalPedidos = orders.length;
-    const ticketMedio = totalPedidos > 0 ? receitaTotal / totalPedidos : 0;
-
-    return { 
-      receitaTotal: receitaTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }), 
-      totalPedidos: totalPedidos.toString(), 
-      ticketMedio: ticketMedio.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) 
-    };
-  }, [orders]);
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5932EA]"></div>
+            <p className="ml-4 text-gray-600">Carregando dados...</p>
+        </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard title="Receita Total" value={`R$ ${dashboardStats.receitaTotal}`} icon={DollarSign} />
-        <StatCard title="Total de Pedidos" value={dashboardStats.totalPedidos} icon={ShoppingCart} />
-        <StatCard title="Ticket Médio" value={`R$ ${dashboardStats.ticketMedio}`} icon={DollarSign} />
+        <StatCard title="Receita Total" value={`R$ ${dashboardStats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={DollarSign} />
+        <StatCard title="Total de Pedidos" value={dashboardStats.totalOrders.toString()} icon={ShoppingCart} />
+        <StatCard title="Ticket Médio" value={`R$ ${dashboardStats.averageOrderValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={DollarSign} />
       </div>
       
       <DashboardCard title="Controle de Pedidos">
@@ -125,7 +82,6 @@ const DashboardHome = () => {
               <TableRow>
                 <TableHead>Pedido ID</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Email</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
               </TableRow>
@@ -135,9 +91,6 @@ const DashboardHome = () => {
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">#{order.id}</TableCell>
                   <TableCell>{getCustomerName(order)}</TableCell>
-                  <TableCell className="text-gray-500">
-                    {order.customers?.email || order.customer_email || 'N/A'}
-                  </TableCell>
                   <TableCell><StatusBadge status={order.status} /></TableCell>
                   <TableCell className="text-right">
                     R$ {order.total_price?.toFixed(2).replace('.', ',') || '0,00'}
@@ -194,8 +147,17 @@ const Dashboard = () => {
   );
 
   const getPageTitle = () => {
-    const path = menuItems.find(item => item.url === location.pathname);
-    return path?.title || 'Dashboard';
+    const currentPath = location.pathname;
+    const activeItem = menuItems.slice().reverse().find(item => currentPath.startsWith(item.url));
+    return activeItem?.title || 'Dashboard';
+  };
+  
+  const isLinkActive = (itemUrl: string) => {
+    const currentPath = location.pathname;
+    if (itemUrl === "/dashboard") {
+      return currentPath === "/dashboard";
+    }
+    return currentPath.startsWith(itemUrl);
   };
 
   return (
@@ -219,7 +181,7 @@ const Dashboard = () => {
                       <Link 
                         to={item.url} 
                         className={`flex items-center space-x-2 p-2 rounded-md ${
-                          location.pathname === item.url 
+                          isLinkActive(item.url)
                             ? 'bg-gray-100 text-[#5932EA] font-semibold' 
                             : 'hover:bg-gray-100/50'
                         }`}

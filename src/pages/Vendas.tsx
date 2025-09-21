@@ -1,3 +1,5 @@
+// src/pages/Vendas.tsx - VERSÃO COM PAGINAÇÃO ALINHADA
+
 import React, { useState, useMemo } from 'react';
 import { useData, OrderWithCustomer } from '../context/DataContext';
 import { Input } from "@/components/ui/input";
@@ -17,8 +19,7 @@ const Vendas = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithCustomer | null>(null);
-  const [orderToEdit, setOrderToEdit] = useState<OrderWithCustomer | null>(null);
-
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [originFilter, setOriginFilter] = useState('todos');
@@ -32,57 +33,20 @@ const Vendas = () => {
     setIsDetailsModalOpen(true);
   };
 
-  const openEditModal = (order: OrderWithCustomer) => {
-    setOrderToEdit(order);
-    setIsNewOrderModalOpen(true);
-  };
-
   const openNewOrderModal = () => {
-    setOrderToEdit(null);
     setIsNewOrderModalOpen(true);
   };
 
-  // Função para extrair nome do cliente (com fallback para os campos antigos)
   const getCustomerName = (order: OrderWithCustomer): string => {
-    // Primeiro, tenta pegar do relacionamento com customers
     if (order.customers?.name) {
       return order.customers.name;
     }
-    
-    // Fallback: se ainda tem customer_name no order
     if (order.customer_name) {
       return order.customer_name;
     }
-    
-    // Fallback: tenta extrair da description (dados antigos)
-    if (order.description) {
-      const patterns = [
-        /Cliente:\s*([^,\n\r]+)/i,
-        /Nome:\s*([^,\n\r]+)/i,
-        /Customer:\s*([^,\n\r]+)/i,
-        /Client:\s*([^,\n\r]+)/i
-      ];
-
-      for (const pattern of patterns) {
-        const match = order.description.match(pattern);
-        if (match && match[1]) {
-          return match[1].trim();
-        }
-      }
-
-      const lines = order.description.split(/[,\n\r]/).filter(line => line.trim());
-      if (lines.length > 0) {
-        const firstLine = lines[0].replace(/^(Cliente:|Nome:|Customer:|Client:)/i, '').trim();
-        if (firstLine) {
-          return firstLine;
-        }
-      }
-    }
-
     return 'Cliente não informado';
   };
 
-  // Função para extrair email do cliente
   const getCustomerEmail = (order: OrderWithCustomer): string => {
     if (order.customers?.email) {
       return order.customers.email;
@@ -102,8 +66,7 @@ const Vendas = () => {
       const matchesSearch = searchTerm === '' ||
         order.id.toString().includes(lowerCaseSearchTerm) ||
         customerName.toLowerCase().includes(lowerCaseSearchTerm) ||
-        customerEmail.toLowerCase().includes(lowerCaseSearchTerm) ||
-        order.description?.toLowerCase().includes(lowerCaseSearchTerm);
+        customerEmail.toLowerCase().includes(lowerCaseSearchTerm);
 
       const matchesStatus = statusFilter === 'todos' || order.status === statusFilter;
       const matchesOrigin = originFilter === 'todos' || order.origin === originFilter;
@@ -116,7 +79,7 @@ const Vendas = () => {
   const paginatedOrders = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredOrders, currentPage, itemsPerPage]);
+  }, [filteredOrders, currentPage]);
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
@@ -129,9 +92,8 @@ const Vendas = () => {
       
       return order.id.toString().includes(lowerSearchTerm) ||
         customerName.toLowerCase().includes(lowerSearchTerm) ||
-        customerEmail.toLowerCase().includes(lowerSearchTerm) ||
-        order.description?.toLowerCase().includes(lowerSearchTerm);
-    }).slice(0, 5); // Limita a 5 resultados no dropdown
+        customerEmail.toLowerCase().includes(lowerSearchTerm);
+    }).slice(0, 5);
   }, [orders, searchTerm]);
 
   if (loading) {
@@ -154,11 +116,9 @@ const Vendas = () => {
             <Filter className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-bold text-gray-900">Filtros e Busca</h3>
           </div>
-
-          {/* Campo de Busca com Dropdown */}
-          <Popover open={searchTerm.length > 0 && searchResults.length > 0}>
-            <PopoverTrigger asChild>
-              <div className="relative">
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="md:col-span-3 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Buscar por ID, cliente, email..."
@@ -166,40 +126,16 @@ const Vendas = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <div className="p-2 text-sm text-gray-500">Resultados da busca:</div>
-              {searchResults.map(order => (
-                <div 
-                  key={order.id} 
-                  className="p-2 hover:bg-gray-100 cursor-pointer text-sm" 
-                  onClick={() => {
-                    handleOpenDetails(order);
-                    setSearchTerm(''); // Limpa o termo de busca
-                  }}
-                >
-                  <div className="font-semibold">#{order.id} - {getCustomerName(order)}</div>
-                  <div className="text-gray-500 text-xs">{getCustomerEmail(order)}</div>
-                </div>
-              ))}
-            </PopoverContent>
-          </Popover>
-
-          <hr className="border-gray-100" />
-          
-          {/* Filtros */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+            </div>
+            
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Status</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="novo_pedido">Novo Pedido</SelectItem>
                   <SelectItem value="a_separar">A Separar</SelectItem>
-                  <SelectItem value="separado">Separado</SelectItem>
-                  <SelectItem value="a_enviar">A Enviar</SelectItem>
                   <SelectItem value="enviado">Enviado</SelectItem>
                   <SelectItem value="concluido">Concluído</SelectItem>
                   <SelectItem value="cancelado">Cancelado</SelectItem>
@@ -267,81 +203,82 @@ const Vendas = () => {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Canal</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">#{order.id}</TableCell>
-                      <TableCell>{getCustomerName(order)}</TableCell>
-                      <TableCell className="text-gray-500">{getCustomerEmail(order)}</TableCell>
-                      <TableCell><StatusBadge status={order.status} /></TableCell>
-                      <TableCell className="text-gray-600">{order.origin || 'N/A'}</TableCell>
-                      <TableCell className="text-right">
-                        R$ {order.total_price?.toFixed(2).replace('.', ',') || '0,00'}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-5 w-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenDetails(order)}>
-                              Ver Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openEditModal(order)}>
-                              <Pencil className="mr-2 h-4 w-4" /> 
-                              Editar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Canal</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">#{order.id}</TableCell>
+                        <TableCell>{getCustomerName(order)}</TableCell>
+                        <TableCell><StatusBadge status={order.status} /></TableCell>
+                        <TableCell className="text-gray-600">{order.origin || 'N/A'}</TableCell>
+                        <TableCell className="text-right">
+                          R$ {order.total_price?.toFixed(2).replace('.', ',') || '0,00'}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-5 w-5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenDetails(order)}>
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Pencil className="mr-2 h-4 w-4" /> 
+                                Editar (em breve)
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-              {/* Paginação */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between py-4">
                   <div className="text-sm text-gray-500">
                     Mostrando {Math.min((currentPage - 1) * itemsPerPage + 1, filteredOrders.length)} a{' '}
                     {Math.min(currentPage * itemsPerPage, filteredOrders.length)} de {filteredOrders.length} resultados
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-sm text-gray-500">
+                  
+                  {/* PÁGINAÇÃO CORRIGIDA */}
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-500">
                       Página {currentPage} de {totalPages}
-                    </div>
-                    <div className="space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} 
-                        disabled={currentPage <= 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />Anterior
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} 
-                        disabled={currentPage >= totalPages}
-                      >
-                        Próxima<ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    </span>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} 
+                      disabled={currentPage <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Anterior
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} 
+                      disabled={currentPage >= totalPages}
+                    >
+                      Próxima
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
                   </div>
                 </div>
               )}
@@ -350,7 +287,6 @@ const Vendas = () => {
         </div>
       </div>
 
-      {/* Modais */}
       {isDetailsModalOpen && selectedOrder && (
         <OrderDetailsModal 
           isOpen={isDetailsModalOpen} 
@@ -362,7 +298,6 @@ const Vendas = () => {
       <AddNewOrderModal 
         isOpen={isNewOrderModalOpen} 
         onClose={() => setIsNewOrderModalOpen(false)} 
-        orderToEdit={orderToEdit} 
       />
     </>
   );

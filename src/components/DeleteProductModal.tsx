@@ -1,42 +1,59 @@
-// src/components/DeleteProductModal.tsx - VERSÃO FINAL (Corrigida)
+// src/components/DeleteProductModal.tsx - VERSÃO CORRIGIDA E FUNCIONAL
 
+import React, { useState } from 'react';
 import { useData, Product } from '../context/DataContext';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
-import { AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
-export const DeleteProductModal = ({ isOpen, onClose, product }: { isOpen: boolean; onClose: () => void; product: Product }) => {
+interface DeleteProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  product: Product | null;
+}
+
+export const DeleteProductModal: React.FC<DeleteProductModalProps> = ({ isOpen, onClose, product }) => {
   const { deleteProduct } = useData();
-  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDelete = async () => {
+    if (!product) {
+      toast.error("Nenhum produto selecionado para excluir.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
       await deleteProduct(product.id);
-      toast({ title: "Sucesso!", description: "Produto removido com sucesso." });
       onClose();
     } catch (error) {
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível remover o produto." });
+      console.error("Falha ao excluir produto no componente:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  if (!product) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
-        <DialogHeader className="flex flex-col items-center text-center">
-            <div className="mb-4 rounded-full bg-red-100 p-3">
-                <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          <DialogTitle className="text-2xl font-bold">Confirmar Exclusão</DialogTitle>
-          <DialogDescription className="text-base">
-            Tem certeza que deseja excluir "{product.name}"?
-            <br />
-            Esta ação não pode ser desfeita.
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="text-destructive" />
+            Confirmar Exclusão
+          </DialogTitle>
+          <DialogDescription className="pt-2">
+            Você tem certeza que deseja excluir o produto <strong>{product.name}</strong>? Esta ação não poderá ser desfeita.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col sm:flex-row sm:justify-center gap-2">
-          <Button variant="outline" onClick={onClose} className="w-full">Cancelar</Button>
-          <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white w-full">Remover produto</Button>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
+            {isSubmitting ? 'Excluindo...' : 'Sim, excluir produto'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

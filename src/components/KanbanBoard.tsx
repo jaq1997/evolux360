@@ -1,18 +1,19 @@
+// src/components/KanbanBoard.tsx - VERSÃO COM CORREÇÃO DE TIPO
+
 import React, { useMemo, useState } from 'react';
 import { DndContext, PointerSensor, KeyboardSensor, useSensor, useSensors, closestCorners, DragEndEvent, DragOverlay, DragStartEvent, useDroppable } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from './ui/button';
 import { ExternalLink, Trash2, AlertTriangle } from 'lucide-react';
-import { Order, useData, OrderStatus } from '../context/DataContext';
+import { Order, useData, OrderStatus, OrderItem } from '../context/DataContext'; // Importar OrderItem
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { OrderDetailsModal } from './OrderDetailsModal';
 
 function KanbanCard({ card, onCardClick }: { card: Order; onCardClick: (card: Order) => void }) {
   const { cancelOrder } = useData();
-  const { toast } = useToast();
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-
+  
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id.toString(),
     data: { type: 'card', order: card },
@@ -32,15 +33,20 @@ function KanbanCard({ card, onCardClick }: { card: Order; onCardClick: (card: Or
   const confirmCancel = async () => {
     try {
       await cancelOrder(card.id);
-      toast({ title: "Pedido Cancelado!", description: `O Pedido #${card.id} foi movido para o histórico.` });
+      toast.success(`Pedido #${card.id} cancelado com sucesso!`);
       setIsCancelModalOpen(false);
-    } catch (error) { // A CORREÇÃO ESTÁ AQUI: removemos o ': any'
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro desconhecido.";
-      toast({ variant: "destructive", title: "Erro!", description: `Não foi possível cancelar o pedido. ${errorMessage}` });
+      toast.error(`Não foi possível cancelar o pedido. ${errorMessage}`);
     }
   };
 
-  const productName = card.description?.split(',')[1]?.trim() || 'Produto';
+  let productName = 'Pedido sem itens';
+  if (card.items && Array.isArray(card.items) && card.items.length > 0) {
+    // CORREÇÃO APLICADA AQUI: Conversão de tipo em duas etapas
+    const firstItem = card.items[0] as unknown as OrderItem;
+    productName = firstItem.product_name || 'Produto sem nome';
+  }
 
   return (
     <>
@@ -88,38 +94,39 @@ const KanbanBoard = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }), useSensor(KeyboardSensor));
-
+  
   const groupedOrders = useMemo(() => {
     const columns: Record<string, Order[]> = { 'novo_pedido': [], 'a_separar': [], 'enviado': [] };
     orders.forEach((order) => {
       const status = order.status as OrderStatus;
-      if (columns[status]) columns[status].push(order);
+      if (columns[status]) {
+        columns[status].push(order);
+      }
     });
     return columns;
   }, [orders]);
-
+  
   const handleDragStart = (event: DragStartEvent) => {
-    const order = orders.find(o => o.id.toString() === event.active.id);
+    const order = event.active.data.current?.order as Order;
     if (order) setActiveOrder(order);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
     setActiveOrder(null);
-    if (!over || !activeOrder || active.id === over.id) return;
+    const { active, over } = event;
+    if (!over || !active.data.current?.order || !over.data.current) return;
 
-    const overIsColumn = over.data.current?.type === 'column';
-    if (overIsColumn) {
-      const newStatus = over.data.current?.status as OrderStatus;
-      if (activeOrder.status !== newStatus) {
-        updateOrder(activeOrder.id, { status: newStatus });
-      }
+    const orderToMove = active.data.current.order as Order;
+    const newStatus = over.data.current.status as OrderStatus;
+    
+    if (newStatus && orderToMove.status !== newStatus) {
+      updateOrder(orderToMove.id, { status: newStatus });
     }
   };
 
-  const columnIds = ['novo_pedido', 'a_separar', 'enviado'];
+  const columnIds: OrderStatus[] = ['novo_pedido', 'a_separar', 'enviado'];
   const columnTitles: Record<string, string> = { 'novo_pedido': 'Novo Pedido', 'a_separar': 'A Separar', 'enviado': 'Enviado' };
-
+  
   return (
     <>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
@@ -128,7 +135,7 @@ const KanbanBoard = () => {
             <KanbanColumn key={columnId} id={columnId} title={`${columnTitles[columnId]} (${groupedOrders[columnId]?.length || 0})`}>
               <SortableContext items={groupedOrders[columnId]?.map(c => c.id.toString()) || []} strategy={verticalListSortingStrategy}>
                 {groupedOrders[columnId]?.map((card) => (
-                  <KanbanCard key={card.id} card={card} onCardClick={() => setSelectedOrder(card)} />
+                   <KanbanCard key={card.id} card={card} onCardClick={() => setSelectedOrder(card)} />
                 ))}
               </SortableContext>
             </KanbanColumn>

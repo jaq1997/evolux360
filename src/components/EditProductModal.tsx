@@ -1,74 +1,110 @@
-// src/components/EditProductModal.tsx - VERSÃO FINAL (Corrigida)
+// src/components/EditProductModal.tsx - VERSÃO CORRIGIDA E FUNCIONAL
 
-import { useState, useEffect } from "react";
-// ✅ CORREÇÃO: Usando o tipo UpdateProductPayload corretamente
-import { useData, UpdateProductPayload, Product } from '../context/DataContext';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import React, { useState, useEffect } from 'react';
+import { useData, Product, UpdateProductPayload } from '../context/DataContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
-export const EditProductModal = ({ isOpen, onClose, product }: { isOpen: boolean; onClose: () => void; product: Product }) => {
+interface EditProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  product: Product | null;
+}
+
+export const EditProductModal: React.FC<EditProductModalProps> = ({ isOpen, onClose, product }) => {
   const { updateProduct } = useData();
-  const { toast } = useToast();
-  const [formData, setFormData] = useState<Partial<UpdateProductPayload>>({});
+  const [formData, setFormData] = useState<UpdateProductPayload>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Efeito para popular o formulário quando um produto é selecionado
   useEffect(() => {
     if (product) {
-      setFormData(product);
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock_quantity: product.stock_quantity,
+        sku: product.sku,
+        supplier: product.supplier,
+      });
     }
   }, [product]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: (name === 'price' || name === 'cost' || name === 'stock_quantity') ? parseFloat(value) || null : value 
+    const isNumberField = ['price', 'stock_quantity'].includes(name);
+    setFormData(prev => ({
+      ...prev,
+      [name]: isNumberField ? Number(value) : value,
     }));
   };
-  
+
   const handleSubmit = async () => {
+    if (!product) {
+      toast.error("Nenhum produto selecionado para editar.");
+      return;
+    }
+    if (!formData.name || !formData.price || !formData.stock_quantity) {
+      toast.error("Por favor, preencha os campos obrigatórios: Nome, Preço e Estoque.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
       await updateProduct(product.id, formData);
-      toast({ title: "Sucesso!", description: "Produto atualizado com sucesso." });
       onClose();
     } catch (error) {
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar o produto." });
+      console.error("Falha ao atualizar produto no componente:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Editar Produto</DialogTitle>
+          <DialogTitle>Editar Produto</DialogTitle>
+          <DialogDescription>
+            Altere as informações do produto abaixo.
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
-          <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg">
-             <img src={formData.image_url || '/placeholder.svg'} alt={formData.name || ''} className="w-24 h-24 rounded-md object-cover mb-4" />
-            <Button variant="outline">Alterar Imagem</Button>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">Nome</Label>
+            <Input id="name" name="name" value={formData.name || ''} onChange={handleChange} className="col-span-3" />
           </div>
-          <div className="md:col-span-2 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label htmlFor="name">Nome do Produto</Label><Input id="name" name="name" value={formData.name || ''} onChange={handleChange} /></div>
-              <div><Label htmlFor="sku">SKU</Label><Input id="sku" name="sku" value={formData.sku || ''} onChange={handleChange} /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label htmlFor="cost">Custo de aquisição</Label><Input id="cost" name="cost" type="number" value={formData.cost || ''} onChange={handleChange} /></div>
-              <div><Label htmlFor="price">Preço de Venda</Label><Input id="price" name="price" type="number" value={formData.price || ''} onChange={handleChange} /></div>
-            </div>
-            <div><Label htmlFor="stock_quantity">Quantidade em estoque</Label><Input id="stock_quantity" name="stock_quantity" type="number" value={formData.stock_quantity || ''} onChange={handleChange} /></div>
-            <div className="grid grid-cols-2 gap-4">
-                <div><Label htmlFor="category">Categoria</Label><Input id="category" name="category" value={formData.category || ''} onChange={handleChange} /></div>
-                <div><Label htmlFor="brand">Marca</Label><Input id="brand" name="brand" value={formData.brand || ''} onChange={handleChange} /></div>
-            </div>
-            <div><Label htmlFor="supplier">Fornecedor Principal</Label><Input id="supplier" name="supplier" value={formData.supplier || ''} onChange={handleChange} /></div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">Descrição</Label>
+            <Textarea id="description" name="description" value={formData.description || ''} onChange={handleChange} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="price" className="text-right">Preço (R$)</Label>
+            <Input id="price" name="price" type="number" value={formData.price || ''} onChange={handleChange} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="stock_quantity" className="text-right">Estoque</Label>
+            <Input id="stock_quantity" name="stock_quantity" type="number" value={formData.stock_quantity || ''} onChange={handleChange} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="sku" className="text-right">SKU</Label>
+            <Input id="sku" name="sku" value={formData.sku || ''} onChange={handleChange} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="supplier" className="text-right">Fornecedor</Label>
+            <Input id="supplier" name="supplier" value={formData.supplier || ''} onChange={handleChange} className="col-span-3" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost">Salvar como rascunho</Button>
-          <Button onClick={handleSubmit} className="bg-[#5932EA] hover:bg-[#4A28C7]">Atualizar Produto</Button>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

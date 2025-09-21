@@ -37,46 +37,52 @@ export type Database = {
       }
       customer_addresses: {
         Row: {
-          city: string
+          city: string | null
           complement: string | null
           created_at: string
           customer_id: string
           id: string
           is_default: boolean | null
-          neighborhood: string
-          number: string
-          state: string
-          street: string
+          is_pickup_location: boolean | null
+          is_primary: boolean | null
+          neighborhood: string | null
+          number: string | null
+          state: string | null
+          street: string | null
           type: string
-          zip_code: string
+          zip_code: string | null
         }
         Insert: {
-          city: string
+          city?: string | null
           complement?: string | null
           created_at?: string
           customer_id: string
           id?: string
           is_default?: boolean | null
-          neighborhood: string
-          number: string
-          state: string
-          street: string
+          is_pickup_location?: boolean | null
+          is_primary?: boolean | null
+          neighborhood?: string | null
+          number?: string | null
+          state?: string | null
+          street?: string | null
           type: string
-          zip_code: string
+          zip_code?: string | null
         }
         Update: {
-          city?: string
+          city?: string | null
           complement?: string | null
           created_at?: string
           customer_id?: string
           id?: string
           is_default?: boolean | null
-          neighborhood?: string
-          number?: string
-          state?: string
-          street?: string
+          is_pickup_location?: boolean | null
+          is_primary?: boolean | null
+          neighborhood?: string | null
+          number?: string | null
+          state?: string | null
+          street?: string | null
           type?: string
-          zip_code?: string
+          zip_code?: string | null
         }
         Relationships: [
           {
@@ -91,8 +97,8 @@ export type Database = {
       customers: {
         Row: {
           birth_date: string | null
+          cpf: string | null
           created_at: string
-          document: string | null
           email: string | null
           gender: string | null
           id: string
@@ -105,8 +111,8 @@ export type Database = {
         }
         Insert: {
           birth_date?: string | null
+          cpf?: string | null
           created_at?: string
-          document?: string | null
           email?: string | null
           gender?: string | null
           id?: string
@@ -119,8 +125,8 @@ export type Database = {
         }
         Update: {
           birth_date?: string | null
+          cpf?: string | null
           created_at?: string
-          document?: string | null
           email?: string | null
           gender?: string | null
           id?: string
@@ -136,6 +142,7 @@ export type Database = {
       orders: {
         Row: {
           address: Json | null
+          created_at: string
           customer_email: string | null
           customer_id: string | null
           customer_name: string | null
@@ -152,6 +159,7 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          created_at?: string
           customer_email?: string | null
           customer_id?: string | null
           customer_name?: string | null
@@ -168,6 +176,7 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          created_at?: string
           customer_email?: string | null
           customer_id?: string | null
           customer_name?: string | null
@@ -188,6 +197,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -331,10 +347,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      orders_with_customers: {
+        Row: {
+          city: string | null
+          complement: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          neighborhood: string | null
+          number: string | null
+          order_id: number | null
+          state: string | null
+          status: string | null
+          street: string | null
+          total_price: number | null
+          zip_code: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      decrement_stock: {
+        Args: { p_product_id: number; p_quantity: number; p_variant_id: string }
+        Returns: undefined
+      }
+      update_stock: {
+        Args: { p_quantity_sold: number; p_variant_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       order_status:

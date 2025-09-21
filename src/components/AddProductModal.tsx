@@ -1,168 +1,107 @@
-// src/components/AddProductModal.tsx - VERSÃO FINAL E COMPLETA
+// src/components/AddProductModal.tsx - VERSÃO CORRIGIDA E FUNCIONAL
 
-import { useState, useRef } from "react";
+import React, { useState } from 'react';
 import { useData, NewProductPayload } from '../context/DataContext';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { UploadCloud } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
-export const AddProductModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const { createProduct, fetchAllData } = useData();
-  const [formData, setFormData] = useState<Partial<NewProductPayload>>({});
-  
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  
-  const imageInputRef = useRef<HTMLInputElement>(null);
+interface AddProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-  // ✅ FUNÇÃO CORRIGIDA PARA CONVERTER TIPOS DE DADOS
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const isNumericField = e.target.type === 'number';
-    
-    const parsedValue = isNumericField 
-      ? (value === '' ? null : parseFloat(value)) 
-      : value;
+export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose }) => {
+  const { addProduct } = useData();
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState<number | ''>('');
+  const [stockQuantity, setStockQuantity] = useState<number | ''>('');
+  const [sku, setSku] = useState('');
+  const [supplier, setSupplier] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    setFormData(prev => ({ ...prev, [name]: parsedValue }));
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-    }
-  };
-
-  const triggerImageInput = () => {
-    imageInputRef.current?.click();
-  };
-
-  const uploadImage = async (file: File): Promise<string | null> => {
-    setIsUploading(true);
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random()}.${fileExt}`; // Nome de arquivo mais robusto
-    const filePath = `product-images/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('product_images')
-      .upload(filePath, file);
-
-    setIsUploading(false);
-    if (uploadError) {
-      console.error("Erro no upload da imagem:", uploadError);
-      toast.error("Falha ao fazer upload da imagem.");
-      return null;
-    }
-
-    return filePath;
-  };
-  
   const handleSubmit = async () => {
-    if (!formData.name || !formData.sku) {
-      toast.error("Erro de Validação", { description: "Nome do Produto e SKU são obrigatórios." });
+    if (!name || !price || !stockQuantity) {
+      toast.error("Por favor, preencha os campos obrigatórios: Nome, Preço e Estoque.");
       return;
     }
 
-    const toastId = toast.loading("Adicionando novo produto...");
+    setIsSubmitting(true);
+
+    const payload: NewProductPayload = {
+      name,
+      description: description || null,
+      price: Number(price),
+      stock_quantity: Number(stockQuantity),
+      sku: sku || null,
+      supplier: supplier || null,
+    };
 
     try {
-      let imageUrl: string | null = null;
-      if (imageFile) {
-        const uploadedPath = await uploadImage(imageFile);
-        if (uploadedPath) {
-          const { data } = supabase.storage.from('product_images').getPublicUrl(uploadedPath);
-          imageUrl = data.publicUrl;
-        } else {
-          toast.error("Falha no Upload", { id: toastId, description: "O produto não foi salvo pois o upload da imagem falhou." });
-          return;
-        }
-      }
-
-      const finalPayload: NewProductPayload = {
-        ...formData,
-        image_url: imageUrl,
-      } as NewProductPayload;
-
-      await createProduct(finalPayload);
-      
-      toast.success("Sucesso!", { id: toastId, description: "Produto adicionado com sucesso." });
-      await fetchAllData();
-      handleClose(); // Usa a função handleClose para limpar e fechar
-    } catch (error: any) {
-      console.error("Erro ao adicionar produto:", error);
-      toast.error("Erro no Servidor", { id: toastId, description: error.message || "Não foi possível adicionar o produto." });
+      await addProduct(payload);
+      onClose(); // Fecha o modal após o sucesso
+    } catch (error) {
+      // O DataContext já mostra um toast de erro, mas podemos logar aqui se necessário.
+      console.error("Falha ao adicionar produto no componente:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // Limpa o formulário ao fechar
   const handleClose = () => {
-    setFormData({});
-    setImageFile(null);
-    setImagePreview(null);
-    setIsUploading(false);
+    setName('');
+    setDescription('');
+    setPrice('');
+    setStockQuantity('');
+    setSku('');
+    setSupplier('');
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Adicionar novo produto</DialogTitle>
+          <DialogTitle>Adicionar Novo Produto</DialogTitle>
+          <DialogDescription>
+            Preencha as informações abaixo para cadastrar um novo produto no seu estoque.
+          </DialogDescription>
         </DialogHeader>
-
-        <input
-          type="file"
-          ref={imageInputRef}
-          onChange={handleImageChange}
-          accept="image/png, image/jpeg, image/jpg"
-          style={{ display: 'none' }}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
-          <div 
-            className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={triggerImageInput}
-          >
-            {imagePreview ? (
-              <img src={imagePreview} alt="Pré-visualização" className="w-full h-48 object-cover rounded-md" />
-            ) : (
-              <div className="text-center">
-                <UploadCloud className="w-16 h-16 text-gray-400 mb-4 mx-auto" />
-                <Button variant="outline" type="button">Adicionar Imagem</Button>
-                <p className="text-xs text-gray-500 mt-2">JPG, PNG, JPEG</p>
-              </div>
-            )}
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">Nome</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
           </div>
-
-          <div className="md:col-span-2 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label htmlFor="name">Nome do Produto</Label><Input id="name" name="name" onChange={handleChange} /></div>
-              <div><Label htmlFor="sku">SKU</Label><Input id="sku" name="sku" onChange={handleChange} /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {/* ✅ NOME DA COLUNA CORRIGIDO */}
-              <div><Label htmlFor="cost">Custo de aquisição</Label><Input id="cost" name="cost" type="number" onChange={handleChange} /></div>
-              <div><Label htmlFor="price">Preço de Venda</Label><Input id="price" name="price" type="number" onChange={handleChange} /></div>
-            </div>
-            <div><Label htmlFor="stock_quantity">Quantidade em estoque</Label><Input id="stock_quantity" name="stock_quantity" type="number" onChange={handleChange} /></div>
-            <div className="grid grid-cols-2 gap-4">
-                <div><Label htmlFor="category">Categoria</Label><Input id="category" name="category" onChange={handleChange} /></div>
-                <div><Label htmlFor="brand">Marca</Label><Input id="brand" name="brand" onChange={handleChange} /></div>
-            </div>
-            <div><Label htmlFor="supplier">Fornecedor Principal</Label><Input id="supplier" name="supplier" onChange={handleChange} /></div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">Descrição</Label>
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="price" className="text-right">Preço (R$)</Label>
+            <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="stock" className="text-right">Estoque</Label>
+            <Input id="stock" type="number" value={stockQuantity} onChange={(e) => setStockQuantity(Number(e.target.value))} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="sku" className="text-right">SKU</Label>
+            <Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="supplier" className="text-right">Fornecedor</Label>
+            <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} className="col-span-3" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={isUploading} className="bg-[#5932EA] hover:bg-[#4A28C7]">
-            {isUploading ? "Enviando imagem..." : "Adicionar Novo Produto"}
+          <Button variant="outline" onClick={handleClose}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Salvando...' : 'Salvar Produto'}
           </Button>
         </DialogFooter>
       </DialogContent>
