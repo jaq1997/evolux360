@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+// NOVO: Importar o componente que criamos ontem
+import { ForgotPasswordForm } from "@/components/Auth/ForgotPasswordForm"; 
 
 const Auth = () => {
+  // NOVO: Estado para controlar a visualização (login ou esqueci a senha)
+  const [view, setView] = useState<'login' | 'forgot_password'>('login');
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,45 +40,51 @@ const Auth = () => {
             onClick={() => navigate('/')}
           >
             <div className="w-10 h-10 bg-gradient-to-br from-[#5932EA] to-[#7C3AED] rounded-lg flex items-center justify-center">
-              {/* LOGO CORRIGIDO AQUI */}
               <img src="/logo.svg" alt="Logo Evolux360" className="w-6 h-6" />
             </div>
             <span className="text-2xl font-bold text-gray-900">Evolux360</span>
           </div>
-          <div className="text-left mb-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">LOGIN</h1>
-            <p className="text-gray-500 mt-2">Insira seu e-mail e sua senha</p>
-          </div>
-          <form onSubmit={handleLogin}>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="login-email" className="text-gray-600">Digite seu e-mail</Label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  placeholder="exemplo@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12"
-                />
+
+          {/* NOVO: Renderização condicional baseada na view */}
+          {view === 'login' ? (
+            <>
+              <div className="text-left mb-8">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">LOGIN</h1>
+                <p className="text-gray-500 mt-2">Insira seu e-mail e sua senha</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="login-password">Digite sua senha</Label>
-                <Input
-                  id="login-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-12"
-                />
+              <form onSubmit={handleLogin}>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email" className="text-gray-600">Digite seu e-mail</Label>
+                    <Input id="login-email" type="email" placeholder="exemplo@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12"/>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="login-password">Digite sua senha</Label>
+                      {/* NOVO: Link para mudar a view para 'forgot_password' */}
+                      <button type="button" onClick={() => setView('forgot_password')} className="text-sm font-medium text-[#5932EA] hover:underline focus:outline-none">
+                        Esqueceu a senha?
+                      </button>
+                    </div>
+                    <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12"/>
+                  </div>
+                  <Button type="submit" className="w-full bg-[#5932EA] hover:bg-[#4A28C7] h-12 text-base" disabled={loading}>
+                    {loading ? "Entrando..." : "Entrar"}
+                  </Button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              {/* NOVO: Renderiza o formulário de recuperação */}
+              <ForgotPasswordForm />
+              <div className="mt-4 text-center">
+                <button onClick={() => setView('login')} className="text-sm font-medium text-[#5932EA] hover:underline focus:outline-none">
+                  Voltar para o login
+                </button>
               </div>
-              <Button type="submit" className="w-full bg-[#5932EA] hover:bg-[#4A28C7] h-12 text-base" disabled={loading}>
-                {loading ? "Entrando..." : "Entrar"}
-              </Button>
-            </div>
-          </form>
+            </>
+          )}
         </div>
       </div>
 

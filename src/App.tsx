@@ -1,4 +1,4 @@
-// src/App.tsx - VERSÃO FINAL COM IMPORT CORRETO
+// src/App.tsx - VERSÃO ATUALIZADA
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -16,7 +16,9 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import AutomacaoInteligente from "./pages/features/AutomacaoInteligente";
 
-// ✅ CORREÇÃO FINAL: O import volta a ser SEM chaves, pois o DataContext da produção usa "export default".
+// NOVO: Importar o componente para a página de atualização de senha
+import { UpdatePasswordForm } from "./components/Auth/UpdatePasswordForm";
+
 import { DataProvider } from "./context/DataContext";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,17 @@ const App = () => (
               <Route path="features/automacao-inteligente" element={<AutomacaoInteligente />} />
             </Route>
             <Route path="/auth" element={<Auth />} />
+
+            {/* ROTA ADICIONADA AQUI */}
+            <Route 
+              path="/update-password" 
+              element={
+                <div className="min-h-screen w-full flex justify-center items-center bg-gray-50">
+                  <UpdatePasswordForm />
+                </div>
+              }
+            />
+
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -55,4 +68,3 @@ const App = () => (
 );
 
 export default App;
-
