@@ -1,5 +1,4 @@
-// src/pages/Dashboard.tsx - VERSÃO COMPLETA E CORRIGIDA
-
+// src/pages/Dashboard.tsx
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation, Link, Routes, Route } from "react-router-dom";
 import { Session } from "@supabase/supabase-js";
@@ -11,11 +10,14 @@ import CRM from "./CRM";
 import Estoque from "./Estoque";
 import Financeiro from "./Financeiro";
 import Vendas from "./Vendas";
-import { LogOut, BarChart3, ShoppingCart, Users, Package, DollarSign } from "lucide-react";
-import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
+import { LogOut, BarChart3, ShoppingCart, Users, Package, DollarSign, User, ChevronUp } from "lucide-react";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarTrigger, SidebarFooter } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from '@/components/StatusBadge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const StatCard = ({ title, value, icon: Icon }: { title: string, value: string, icon: React.ElementType }) => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
@@ -63,8 +65,8 @@ const DashboardHome = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="space-y-6 main-content-min-height">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard title="Receita Total" value={`R$ ${dashboardStats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={DollarSign} />
         <StatCard title="Total de Pedidos" value={dashboardStats.totalOrders.toString()} icon={ShoppingCart} />
         <StatCard title="Ticket Médio" value={`R$ ${dashboardStats.averageOrderValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={DollarSign} />
@@ -114,7 +116,9 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { 
+      const isDemoMode = localStorage.getItem('demo_mode') === 'true';
+      
+      if (!session && !isDemoMode) { 
         navigate("/auth"); 
       } else { 
         setSession(session); 
@@ -125,7 +129,8 @@ const Dashboard = () => {
     fetchSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
-      if (!session) { 
+      const isDemoMode = localStorage.getItem('demo_mode') === 'true';
+      if (!session && !isDemoMode) { 
         navigate('/auth'); 
       } else { 
         setSession(session); 
@@ -135,7 +140,10 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleLogout = () => supabase.auth.signOut().then(() => navigate("/"));
+  const handleLogout = () => {
+    localStorage.removeItem('demo_mode');
+    supabase.auth.signOut().then(() => navigate("/"));
+  };
 
   if (sessionLoading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -160,33 +168,36 @@ const Dashboard = () => {
     return currentPath.startsWith(itemUrl);
   };
 
+  const userEmail = session?.user?.email || "Admin Demo";
+  const userInitial = userEmail.charAt(0).toUpperCase();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
-        <Sidebar>
+        <Sidebar className="border-r border-gray-100">
           <SidebarContent>
-            <div className="p-4">
-              <Link to="/dashboard" className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#5932EA] to-[#7C3AED] rounded-lg flex items-center justify-center">
+            <div className="p-6">
+              <Link to="/dashboard" className="flex items-center space-x-3">
+                <div className="w-9 h-9 bg-gradient-to-br from-[#5932EA] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
                   <img src="/logo.svg" alt="Logo Evolux360" className="w-5 h-5" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">Evolux360</span>
+                <span className="text-xl font-bold text-[#5932EA] tracking-tight">Evolux360</span>
               </Link>
             </div>
             <SidebarGroup>
-              <SidebarGroupContent>
+              <SidebarGroupContent className="px-2">
                 <SidebarMenu>
                   {menuItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <Link 
                         to={item.url} 
-                        className={`flex items-center space-x-2 p-2 rounded-md ${
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                           isLinkActive(item.url)
-                            ? 'bg-gray-100 text-[#5932EA] font-semibold' 
-                            : 'hover:bg-gray-100/50'
+                            ? 'bg-[#5932EA] text-white shadow-md shadow-purple-100 font-semibold' 
+                            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                         }`}
                       >
-                        <item.icon className="w-5 h-5" />
+                        <item.icon className={`w-5 h-5 ${isLinkActive(item.url) ? 'text-white' : ''}`} />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuItem>
@@ -195,30 +206,49 @@ const Dashboard = () => {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
+          
+          <SidebarFooter className="p-4 border-t border-gray-100">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center space-x-3 w-full p-2 rounded-xl hover:bg-gray-100 transition-colors text-left">
+                  <Avatar className="h-9 w-9 border-2 border-purple-100">
+                    <AvatarFallback className="bg-purple-50 text-[#5932EA] font-bold">{userInitial}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">{userEmail.split('@')[0]}</p>
+                    <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                  </div>
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mb-2">
+                <DropdownMenuItem className="text-gray-600"><User className="mr-2 h-4 w-4" /> Perfil (em breve)</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sair do Sistema
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarFooter>
         </Sidebar>
         
         <div className="flex-1 flex flex-col min-w-0">
           <ScrollArea className="flex-grow">
-            <header className="bg-white border-b border-gray-100 p-4 sticky top-0 z-40">
+            <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4 sticky top-0 z-40">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-4">
                   <SidebarTrigger />
-                  <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
+                  <div className="h-6 w-[1px] bg-gray-200 mx-2 hidden md:block"></div>
+                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{getPageTitle()}</h1>
                 </div>
-                {session && (
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-600">
-                      Olá, {session.user.email?.split('@')[0]}
-                    </span>
-                    <Button onClick={handleLogout} variant="outline" size="sm">
-                      <LogOut className="mr-2 h-4 w-4" />Sair
-                    </Button>
-                  </div>
-                )}
+                <div className="flex items-center space-x-4">
+                    <Badge variant="outline" className="bg-purple-50 text-[#5932EA] border-purple-100 px-3 py-1">
+                      {localStorage.getItem('demo_mode') === 'true' ? 'Modo Demo Ativo' : 'Versão Pro'}
+                    </Badge>
+                </div>
               </div>
             </header>
             
-            <main className="p-4 md:p-8">
+            <main className="p-6">
               <Routes>
                 <Route index element={<DashboardHome />} />
                 <Route path="vendas" element={<Vendas />} />

@@ -42,21 +42,31 @@ const features: { title: string; href: string; description: string }[] = [
 export const Header = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const checkDemo = () => {
+      const demo = localStorage.getItem('demo_mode') === 'true';
+      setIsDemoMode(demo);
+    };
+    
+    checkDemo();
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      checkDemo();
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
+    localStorage.removeItem('demo_mode');
     await supabase.auth.signOut();
     navigate('/');
   };
@@ -100,7 +110,7 @@ export const Header = () => {
         
         {/* Botões da Direita Desktop (somem em telas menores que 'md') */}
         <div className="hidden md:flex items-center space-x-3">
-          {session ? (
+          {(session || isDemoMode) ? (
             <>
               <Button variant="ghost" onClick={() => navigate('/dashboard')}>Dashboard</Button>
               <Button onClick={handleLogout} variant="outline" size="icon"><LogOut className="h-4 w-4" /></Button>
@@ -135,7 +145,7 @@ export const Header = () => {
               Fale Conosco
             </a>
             <div className="border-t border-gray-200 pt-4 flex flex-col space-y-3">
-              {session ? (
+              {(session || isDemoMode) ? (
                  <>
                   <Button variant="ghost" onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }}>Dashboard</Button>
                   <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} variant="outline">Sair</Button>

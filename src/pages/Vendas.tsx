@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useData, OrderWithCustomer } from '../context/DataContext';
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -60,13 +61,27 @@ const Vendas = () => {
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      const customerName = getCustomerName(order);
-      const customerEmail = getCustomerEmail(order);
+      const customerName = getCustomerName(order).toLowerCase();
+      const customerEmail = getCustomerEmail(order).toLowerCase();
+      const origin = (order.origin || '').toLowerCase();
+      const status = (order.status || '').toLowerCase();
       
+      // Mapeamento de status para busca amigável
+      const statusLabels: Record<string, string> = {
+        novo_pedido: 'novo pedido',
+        a_separar: 'a separar',
+        enviado: 'enviado',
+        concluido: 'concluído',
+        cancelado: 'cancelado'
+      };
+      const statusLabel = statusLabels[status] || '';
+
       const matchesSearch = searchTerm === '' ||
         order.id.toString().includes(lowerCaseSearchTerm) ||
-        customerName.toLowerCase().includes(lowerCaseSearchTerm) ||
-        customerEmail.toLowerCase().includes(lowerCaseSearchTerm);
+        customerName.includes(lowerCaseSearchTerm) ||
+        customerEmail.includes(lowerCaseSearchTerm) ||
+        origin.includes(lowerCaseSearchTerm) ||
+        statusLabel.includes(lowerCaseSearchTerm);
 
       const matchesStatus = statusFilter === 'todos' || order.status === statusFilter;
       const matchesOrigin = originFilter === 'todos' || order.origin === originFilter;
@@ -96,9 +111,42 @@ const Vendas = () => {
     }).slice(0, 5);
   }, [orders, searchTerm]);
 
+  const handleExport = () => {
+    if (filteredOrders.length === 0) {
+      toast.error("Não há dados para exportar");
+      return;
+    }
+
+    const csvData = filteredOrders.map(order => ({
+      ID: order.id,
+      Data: new Date(order.created_at!).toLocaleDateString('pt-BR'),
+      Cliente: getCustomerName(order),
+      Email: getCustomerEmail(order),
+      Status: order.status,
+      Origem: order.origin || 'N/A',
+      Valor: order.total_price,
+      Pagamento: order.payment_method || 'N/A'
+    }));
+
+    const csvRows = [
+      Object.keys(csvData[0]).join(','),
+      ...csvData.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvRows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `vendas_evolux_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Exportação concluída!");
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
+    <div className="space-y-6 main-content-min-height">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5932EA] mx-auto"></div>
           <p className="mt-2 text-gray-600">Carregando histórico de vendas...</p>
@@ -178,7 +226,7 @@ const Vendas = () => {
               Histórico de Vendas ({filteredOrders.length})
             </h3>
             <div className="flex items-center gap-2">
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" />Exportar
               </Button>
               <Button 

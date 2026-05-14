@@ -1,161 +1,255 @@
+// src/pages/Financeiro.tsx
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, ArrowUp, ArrowDown, Plus, Search, Filter, Edit, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
+import { DollarSign, ArrowUp, ArrowDown, Plus, Search, Filter, Trash2, AlertTriangle, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-
-const cashflowData = [
-    { month: "Jan", Entradas: 31793, Saídas: 15186 },
-    { month: "Fev", Entradas: 34403, Saídas: 25186 },
-    { month: "Mar", Entradas: 29074, Saídas: 27542 },
-    { month: "Abr", Entradas: 25249, Saídas: 22972 },
-    { month: "Mai", Entradas: 26360, Saídas: 10766 },
-    { month: "Jun", Entradas: 48205, Saídas: 26226 },
-];
-
-const initialTransactions = [
-    { id: 1, date: "2025-07-05", type: "Entrada", origin: "Vendas E-commerce", paymentMethod: "Pix", value: 1234.56, status: "Completo", notes: "Referente ao pedido #456" },
-    { id: 2, date: "2025-07-05", type: "Saída", origin: "Administrativo - Imposto", paymentMethod: "Boleto", value: 234.56, status: "Pendente", notes: "DARF mensal" },
-    { id: 3, date: "2025-07-03", type: "Saída", origin: "Marketing - Ads", paymentMethod: "Cartão de Crédito", value: 345.67, status: "Em Atraso", notes: "Campanha de julho" },
-    { id: 4, date: "2025-07-02", type: "Entrada", origin: "Vendas E-commerce", paymentMethod: "Cartão de Crédito", value: 850.00, status: "Completo", notes: "Referente ao pedido #455" },
-    { id: 5, date: "2025-07-01", type: "Entrada", origin: "Vendas E-commerce", paymentMethod: "Cartão de Débito", value: 150.00, status: "Completo", notes: "Referente ao pedido #454" },
-];
+import { useData } from "@/context/DataContext";
+import { toast } from "sonner";
 
 const getStatusBadge = (status: string) => {
     switch (status) {
         case "Completo": return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">{status}</Badge>;
-        case "Pendente": return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-orange-200">{status}</Badge>;
+        case "Pendente": return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">{status}</Badge>;
         case "Em Atraso": return <Badge variant="destructive">{status}</Badge>;
         default: return <Badge variant="secondary">{status}</Badge>;
     }
 };
 
 const Financeiro = () => {
-    const [transactions, setTransactions] = useState(initialTransactions);
+    const { transactions, setTransactions, loading, createTransaction } = useData() as any;
+    const [searchTerm, setSearchTerm] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-    const [selectedTransaction, setSelectedTransaction] = useState(null);
-    const [successMessage, setSuccessMessage] = useState("");
+    const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
-    // Estados dos filtros
     const [typeFilter, setTypeFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
-    // NOVO: Estado para o filtro de forma de pagamento
-    const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
+    const [paymentFilter, setPaymentFilter] = useState("all");
 
-    const handleActionSuccess = (message) => {
-        setSuccessMessage(message);
-        setIsSuccessModalOpen(true);
+    const [newTrans, setNewTrans] = useState({ type: 'Entrada', origin: '', value: '', status: 'Completo', payment_method: 'Pix', notes: '' });
+
+    const handleAddTransaction = async () => {
+        if (!newTrans.origin || !newTrans.value) {
+            toast.error("Preencha a origem e o valor.");
+            return;
+        }
+        await createTransaction({
+            type: newTrans.type as any,
+            origin: newTrans.origin,
+            value: Number(newTrans.value),
+            status: newTrans.status as any,
+            payment_method: newTrans.payment_method,
+            date: new Date().toISOString()
+        });
+        setIsAddModalOpen(false);
+        setNewTrans({ type: 'Entrada', origin: '', value: '', status: 'Completo', payment_method: 'Pix', notes: '' });
     };
-    const handleEditClick = (transaction) => {
-        setSelectedTransaction(transaction);
-        setIsEditModalOpen(true);
-    };
-    const handleUpdateTransaction = () => {
-        setIsEditModalOpen(false);
-        handleActionSuccess(`Transação #${selectedTransaction.id} atualizada com sucesso!`);
-    };
-    const handleDeleteClick = (transaction) => {
-        setSelectedTransaction(transaction);
+
+    const handleDelete = (t: any) => {
+        setSelectedTransaction(t);
         setIsDeleteModalOpen(true);
     };
-    const confirmDelete = () => {
-        setTransactions(transactions.filter(t => t.id !== selectedTransaction.id));
-        setIsDeleteModalOpen(false);
-        handleActionSuccess(`Transação #${selectedTransaction.id} foi removida.`);
+
+    const handleDeleteTransaction = (id: number) => {
+        const isDemoMode = localStorage.getItem('demo_mode') === 'true';
+        if (isDemoMode) {
+            setTransactions(prev => prev.filter(t => t.id !== id));
+            toast.success("Transação excluída!");
+            setIsDeleteModalOpen(false);
+        }
     };
 
     const filteredTransactions = useMemo(() => {
         return transactions.filter(t => {
-            const typeMatch = typeFilter === 'all' || t.type === typeFilter;
-            const statusMatch = statusFilter === 'all' || t.status === statusFilter;
-            // NOVO: Lógica para o filtro de forma de pagamento
-            const paymentMethodMatch = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
-            return typeMatch && statusMatch && paymentMethodMatch;
+            const lowerSearch = searchTerm.toLowerCase();
+            const matchesSearch = !searchTerm || 
+                t.origin?.toLowerCase().includes(lowerSearch) || 
+                t.payment_method?.toLowerCase().includes(lowerSearch);
+            const matchesType = typeFilter === 'all' || t.type === typeFilter;
+            const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+            const matchesPayment = paymentFilter === 'all' || t.payment_method === paymentFilter;
+            return matchesSearch && matchesType && matchesStatus && matchesPayment;
         });
-    }, [transactions, typeFilter, statusFilter, paymentMethodFilter]);
+    }, [transactions, searchTerm, typeFilter, statusFilter, paymentFilter]);
 
-    const handleAddTransaction = (e) => {
-        e.preventDefault();
-        setIsAddModalOpen(false);
-        handleActionSuccess("Nova transação adicionada com sucesso!");
-    };
+    const cashflowData = useMemo(() => {
+        const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+        return months.map((month, i) => ({
+            month,
+            Entradas: transactions.filter(t => t.type === 'Entrada' && new Date(t.date).getMonth() === i).reduce((s, t) => s + Number(t.value), 0),
+            Saídas: transactions.filter(t => t.type === 'Saída' && new Date(t.date).getMonth() === i).reduce((s, t) => s + Number(t.value), 0),
+        }));
+    }, [transactions]);
+
+    const totals = useMemo(() => {
+        const entradas = transactions.filter(t => t.type === 'Entrada').reduce((s, t) => s + Number(t.value), 0);
+        const saidas = transactions.filter(t => t.type === 'Saída').reduce((s, t) => s + Number(t.value), 0);
+        return { entradas, saidas, saldo: entradas - saidas };
+    }, [transactions]);
+
+    const isFilterActive = useMemo(() => {
+        return typeFilter !== 'all' || statusFilter !== 'all' || paymentFilter !== 'all' || searchTerm !== '';
+    }, [typeFilter, statusFilter, paymentFilter, searchTerm]);
+
+    if (loading) return <div className="p-8">Carregando finanças...</div>;
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-6">
-                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total de Entradas</CardTitle><ArrowUp className="h-5 w-5 text-green-500" /></CardHeader><CardContent><p className="text-3xl font-bold text-green-600">R$ 45.231,89</p></CardContent></Card>
-                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total de Saídas</CardTitle><ArrowDown className="h-5 w-5 text-red-500" /></CardHeader><CardContent><p className="text-3xl font-bold text-red-600">R$ 23.148,00</p></CardContent></Card>
-                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Valor em caixa</CardTitle><DollarSign className="h-5 w-5 text-blue-500" /></CardHeader><CardContent><p className="text-3xl font-bold text-blue-600">R$ 22.086,89</p></CardContent></Card>
-                </div>
-                <Card className="lg:col-span-2">
-                    <CardHeader><CardTitle>Fluxo de caixa</CardTitle></CardHeader>
-                    <CardContent className="pl-2 h-[350px]">
-                        <ResponsiveContainer width="100%" height="100%"><BarChart data={cashflowData}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" tick={{ fontSize: 12 }} /><YAxis tickFormatter={(value) => `R$${value / 1000}k`} tick={{ fontSize: 12 }} /><Tooltip formatter={(value) => `R$ ${value.toLocaleString('pt-BR')}`} cursor={{ fill: '#f3f4f6' }} /><Legend /><Bar dataKey="Entradas" fill="#22C55E" radius={[4, 4, 0, 0]} /><Bar dataKey="Saídas" fill="#EF4444" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer>
+        <div className="space-y-6 main-content-min-height">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="border-l-4 border-l-green-500 shadow-sm">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-gray-500 uppercase">Entradas</CardTitle>
+                        <ArrowUp className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-gray-900">R$ {totals.entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                    </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-red-500 shadow-sm">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-gray-500 uppercase">Saídas</CardTitle>
+                        <ArrowDown className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-gray-900">R$ {totals.saidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                    </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-[#5932EA] bg-[#5932EA]/5 shadow-sm">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-[#5932EA] uppercase">Saldo em Caixa</CardTitle>
+                        <DollarSign className="h-4 w-4 text-[#5932EA]" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-[#5932EA]">R$ {totals.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                     </CardContent>
                 </Card>
             </div>
 
-            <Card>
+            <Card className="shadow-sm">
+                <CardHeader><CardTitle className="text-gray-700">Fluxo de Caixa Mensal</CardTitle></CardHeader>
+                <CardContent className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={cashflowData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
+                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} tickFormatter={(v) => `R$${v/1000}k`} />
+                            <Tooltip cursor={{fill: '#f9fafb'}} contentStyle={{borderRadius: '8px', border: 'none'}} />
+                            <Legend verticalAlign="top" align="right" />
+                            <Bar dataKey="Entradas" fill="#22C55E" radius={[4, 4, 0, 0]} barSize={30} />
+                            <Bar dataKey="Saídas" fill="#EF4444" radius={[4, 4, 0, 0]} barSize={30} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
                 <CardHeader>
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <CardTitle>Transações Recentes</CardTitle>
-                        <div className="flex w-full sm:w-auto items-center gap-2 flex-wrap">
-                            <div className="relative w-full sm:w-auto"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Buscar..." className="pl-8 w-full sm:w-[200px]" /></div>
-                            
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <CardTitle className="text-gray-700 text-lg">Transações</CardTitle>
+                            {isFilterActive && <Badge variant="secondary" className="bg-purple-50 text-[#5932EA] border-purple-100">Filtro Ativo</Badge>}
+                        </div>
+                        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                            <div className="relative flex-grow md:flex-grow-0">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                                <Input placeholder="Buscar transação..." className="pl-8 w-full md:w-[200px]" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            </div>
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filtros</Button></DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56">
-                                    <DropdownMenuLabel>Filtrar por</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <div className="p-2 space-y-4">
-                                        <div className="space-y-2"><Label className="text-sm font-normal">Tipo</Label><Select value={typeFilter} onValueChange={setTypeFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os Tipos</SelectItem><SelectItem value="Entrada">Entrada</SelectItem><SelectItem value="Saída">Saída</SelectItem></SelectContent></Select></div>
-                                        <div className="space-y-2"><Label className="text-sm font-normal">Status</Label><Select value={statusFilter} onValueChange={setStatusFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os Status</SelectItem><SelectItem value="Completo">Completo</SelectItem><SelectItem value="Pendente">Pendente</SelectItem><SelectItem value="Em Atraso">Em Atraso</SelectItem></SelectContent></Select></div>
-                                        {/* NOVO: Filtro de Forma de Pagamento */}
-                                        <div className="space-y-2"><Label className="text-sm font-normal">Forma de Pagamento</Label><Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todas</SelectItem><SelectItem value="Pix">Pix</SelectItem><SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem><SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem><SelectItem value="Boleto">Boleto</SelectItem></SelectContent></Select></div>
+                                <DropdownMenuTrigger asChild><Button variant="outline" className="border-[#5932EA] text-[#5932EA] hover:bg-[#5932EA]/5"><Filter className="w-4 h-4 mr-2" /> Filtros</Button></DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-64 p-4 space-y-4">
+                                    <div className="space-y-2">
+                                        <Label>Tipo</Label>
+                                        <Select value={typeFilter} onValueChange={setTypeFilter}>
+                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="Entrada">Entradas</SelectItem><SelectItem value="Saída">Saídas</SelectItem></SelectContent>
+                                        </Select>
                                     </div>
+                                    <div className="space-y-2">
+                                        <Label>Forma de Pagamento</Label>
+                                        <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectContent><SelectItem value="all">Todas</SelectItem><SelectItem value="Pix">Pix</SelectItem><SelectItem value="Boleto">Boleto</SelectItem><SelectItem value="Cartão">Cartão</SelectItem></SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Button variant="ghost" className="w-full text-xs text-red-500" onClick={() => { setTypeFilter('all'); setPaymentFilter('all'); setSearchTerm(''); }}>Limpar Filtros</Button>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                            
-                            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}><DialogTrigger asChild><Button className="bg-[#5932EA] hover:bg-[#4A28C7]"><Plus className="mr-2 h-4 w-4" /> Nova Transação</Button></DialogTrigger><DialogContent className="sm:max-w-md">{/* ... (conteúdo do modal de adicionar) ... */}</DialogContent></Dialog>
+                            <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white" onClick={() => setIsAddModalOpen(true)}>
+                                <Plus className="w-4 h-4 mr-2" /> Nova Transação
+                            </Button>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
-                        <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Tipo</TableHead><TableHead>Origem</TableHead><TableHead>Forma de Pagamento</TableHead><TableHead>Valor</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
+                        <TableHeader>
+                            <TableRow className="bg-gray-50">
+                                <TableHead>Data</TableHead>
+                                <TableHead>Tipo</TableHead>
+                                <TableHead>Origem</TableHead>
+                                <TableHead>Responsável</TableHead>
+                                <TableHead className="text-right">Valor</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Ações</TableHead>
+                            </TableRow>
+                        </TableHeader>
                         <TableBody>
-                            {filteredTransactions.map((t) => (
+                            {filteredTransactions.map(t => (
                                 <TableRow key={t.id}>
-                                    <TableCell>{new Date(t.date).toLocaleDateString()}</TableCell>
-                                    <TableCell className={`font-medium ${t.type === 'Entrada' ? 'text-green-600' : 'text-red-600'}`}>{t.type}</TableCell>
-                                    <TableCell>{t.origin}</TableCell>
-                                    <TableCell>{t.paymentMethod}</TableCell>
-                                    <TableCell className="font-medium">{`R$ ${t.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}</TableCell>
+                                    <TableCell className="text-xs text-gray-500">{new Date(t.date).toLocaleDateString('pt-BR')}</TableCell>
+                                    <TableCell><span className={`text-xs font-bold ${t.type === 'Entrada' ? 'text-green-600' : 'text-red-500'}`}>{t.type}</span></TableCell>
+                                    <TableCell className="font-medium">{t.origin}</TableCell>
+                                    <TableCell className="text-xs text-gray-400">{(t as any).responsible || 'Admin Demo'}</TableCell>
+                                    <TableCell className={`text-right font-bold ${t.type === 'Entrada' ? 'text-green-600' : 'text-red-500'}`}>R$ {t.value.toFixed(2)}</TableCell>
                                     <TableCell>{getStatusBadge(t.status)}</TableCell>
-                                    <TableCell className="text-right"><div className="flex items-center justify-end space-x-1"><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditClick(t)}><Edit className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={() => handleDeleteClick(t)}><Trash2 className="h-4 w-4" /></Button></div></TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-600" onClick={() => handleDelete(t)}><Trash2 className="w-4 h-4" /></Button>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
-            
-            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Editar Transação</DialogTitle></DialogHeader>{selectedTransaction && (<div className="py-4 space-y-4"><div><Label>Tipo de transação</Label><RadioGroup defaultValue={selectedTransaction.type} className="grid grid-cols-2 gap-4 mt-2"><div><RadioGroupItem value="Entrada" id="r1-edit" className="peer sr-only" /><Label htmlFor="r1-edit" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Entrada</Label></div><div><RadioGroupItem value="Saída" id="r2-edit" className="peer sr-only" /><Label htmlFor="r2-edit" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Saída</Label></div></RadioGroup></div><div><Label>Origem da transação</Label><Input defaultValue={selectedTransaction.origin} /></div><div><Label>Valor da transação</Label><Input type="number" defaultValue={selectedTransaction.value} /></div><div><Label>Status da transação</Label><Select defaultValue={selectedTransaction.status}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Completo">Completo</SelectItem><SelectItem value="Pendente">Pendente</SelectItem><SelectItem value="Em Atraso">Em Atraso</SelectItem></SelectContent></Select></div><div><Label>Informações adicionais (opcional)</Label><Textarea defaultValue={selectedTransaction.notes} /></div></div>)}<DialogFooter><Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button><Button onClick={handleUpdateTransaction} className="bg-[#5932EA]">Salvar Alterações</Button></DialogFooter></DialogContent></Dialog>
-            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>{/* ... (código inalterado) ... */}</Dialog>
-            <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>{/* ... (código inalterado) ... */}</Dialog>
+
+            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader><DialogTitle className="text-[#5932EA]">Nova Transação</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <RadioGroup value={newTrans.type} onValueChange={v => setNewTrans({...newTrans, type: v})} className="grid grid-cols-2 gap-4">
+                            <div className={`border p-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer ${newTrans.type === 'Entrada' ? 'border-green-500 bg-green-50' : ''}`} onClick={() => setNewTrans({...newTrans, type: 'Entrada'})}>
+                                <ArrowUp className="w-4 h-4 text-green-600" /> <span className="font-bold text-green-600">Entrada</span>
+                            </div>
+                            <div className={`border p-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer ${newTrans.type === 'Saída' ? 'border-red-500 bg-red-50' : ''}`} onClick={() => setNewTrans({...newTrans, type: 'Saída'})}>
+                                <ArrowDown className="w-4 h-4 text-red-600" /> <span className="font-bold text-red-600">Saída</span>
+                            </div>
+                        </RadioGroup>
+                        <div className="space-y-1"><Label>Origem / Descrição</Label><Input value={newTrans.origin} onChange={e => setNewTrans({...newTrans, origin: e.target.value})} placeholder="Ex: Venda #101" /></div>
+                        <div className="space-y-1"><Label>Valor (R$)</Label><Input type="number" value={newTrans.value} onChange={e => setNewTrans({...newTrans, value: e.target.value})} placeholder="0.00" /></div>
+                    </div>
+                    <DialogFooter><Button className="w-full bg-[#5932EA] hover:bg-[#4A28C7]" onClick={handleAddTransaction}>Salvar Transação</Button></DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                <DialogContent>
+                    <DialogHeader><DialogTitle className="flex items-center gap-2 text-red-600"><AlertTriangle /> Excluir</DialogTitle></DialogHeader>
+                    <p className="py-4 text-gray-600">Deseja excluir a transação de <strong>R$ {selectedTransaction?.value.toFixed(2)}</strong>?</p>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={() => handleDeleteTransaction(selectedTransaction?.id)}>Sim, Excluir</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

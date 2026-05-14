@@ -1,10 +1,11 @@
-// src/App.tsx - VERSÃO ATUALIZADA
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -33,38 +34,58 @@ const AppLayout = () => (
   </div>
 );
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <DataProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Index />} />
-              <Route path="products" element={<Products />} />
-              <Route path="features/automacao-inteligente" element={<AutomacaoInteligente />} />
-            </Route>
-            <Route path="/auth" element={<Auth />} />
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <DataProvider>
+          <BrowserRouter>
+            <AuthHandler />
+            <Routes>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Index />} />
+                <Route path="products" element={<Products />} />
+                <Route path="features/automacao-inteligente" element={<AutomacaoInteligente />} />
+              </Route>
+              <Route path="/auth" element={<Auth />} />
 
-            {/* ROTA ADICIONADA AQUI */}
-            <Route 
-              path="/update-password" 
-              element={
-                <div className="min-h-screen w-full flex justify-center items-center bg-gray-50">
-                  <UpdatePasswordForm />
-                </div>
-              }
-            />
+              <Route 
+                path="/update-password" 
+                element={
+                  <div className="min-h-screen w-full flex justify-center items-center bg-gray-50">
+                    <UpdatePasswordForm />
+                  </div>
+                }
+              />
 
-            <Route path="/dashboard/*" element={<Dashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </DataProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+              <Route path="/dashboard/*" element={<Dashboard />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </DataProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
+
+// Componente para lidar com eventos de autenticação globais
+const AuthHandler = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        console.log("Evento de recuperação de senha detectado!");
+        navigate("/update-password");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  return null;
+};
 
 export default App;

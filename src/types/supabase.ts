@@ -345,6 +345,56 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          created_at: string
+          date: string
+          id: number
+          notes: string | null
+          order_id: number | null
+          origin: string
+          payment_method: string | null
+          status: Database["public"]["Enums"]["transaction_status"] | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: number
+          notes?: string | null
+          order_id?: number | null
+          origin: string
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"] | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: number
+          notes?: string | null
+          order_id?: number | null
+          origin?: string
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"] | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       orders_with_customers: {
@@ -384,6 +434,10 @@ export type Database = {
         | "a_enviar"
         | "enviado"
         | "recuperar_carrinho"
+        | "concluido"
+        | "cancelado"
+      transaction_status: "Completo" | "Pendente" | "Em Atraso"
+      transaction_type: "Entrada" | "Saída"
     }
     CompositeTypes: {
       [_ in never]: never
