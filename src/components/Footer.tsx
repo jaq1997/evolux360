@@ -6,52 +6,61 @@ import { Instagram, Mail, Phone } from "lucide-react";
 
 export const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-16 px-4">
+    <footer className="bg-[#050505] text-white py-24 px-4 border-t border-white/5">
       <div className="container mx-auto">
-        <div className="flex justify-center mb-8">
-          <Link to="/" className="flex items-center space-x-2">
-            <img src="/icone-branco.svg" alt="Logo" className="w-8 h-8" />
-            <span className="text-xl font-bold">Evolux360</span>
-          </Link>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          <div className="col-span-1 md:col-span-1">
+            <Link to="/" className="flex items-center space-x-2 mb-6">
+              <img src="/icone-branco.svg" alt="Logo" className="w-8 h-8" />
+              <span className="text-2xl font-black tracking-tighter">Evolux360</span>
+            </Link>
+            <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
+              A inteligência que transforma dados em lucro. Centralize, simplifique e escale sua operação.
+            </p>
+          </div>
+          
+          <div>
+            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Produto</h4>
+            <ul className="space-y-4 text-sm text-gray-500">
+              <li><Link to="/products" className="hover:text-white transition-colors">Nossas Soluções</Link></li>
+              <li><Link to="/features" className="hover:text-white transition-colors">Funcionalidades</Link></li>
+              <li><Link to="/pricing" className="hover:text-white transition-colors">Planos</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Institucional</h4>
+            <ul className="space-y-4 text-sm text-gray-500">
+              <li><a href="#" className="hover:text-white transition-colors">Sobre a Evolux</a></li>
+              <li><a href="https://wa.me/5551993417866" className="hover:text-white transition-colors">Fale Conosco</a></li>
+              <li><a href="https://www.instagram.com/evolux_360/" className="hover:text-white transition-colors">Blog</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Conecte-se</h4>
+            <div className="flex space-x-4 mb-6">
+              <a href="https://www.instagram.com/evolux_360/" target="_blank" className="bg-white/5 p-3 rounded-full hover:bg-[#5932EA] transition-all">
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a href="mailto:contatoevolux360@gmail.com" className="bg-white/5 p-3 rounded-full hover:bg-[#5932EA] transition-all">
+                <Mail className="w-5 h-5" />
+              </a>
+              <a href="https://wa.me/5551993417866" target="_blank" className="bg-white/5 p-3 rounded-full hover:bg-[#5932EA] transition-all">
+                <Phone className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
         </div>
-        <p className="text-center text-gray-400 text-sm mb-4">
-          A Evolux360 é uma plataforma inteligente que transforma dados em decisões. Centralizando vendas, gestão de clientes (CRM)
-e finanças em um único lugar, automatizamos e simplificamos sua gestão permitindo que você potencialize seu negócio.
-        </p>
         
-        <div className="flex justify-center space-x-6 my-8">
-          <a 
-            href="https://www.instagram.com/evolux_360/" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            aria-label="Instagram da Evolux360"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <Instagram className="w-6 h-6" />
-          </a>
-          <a 
-            href="mailto:contatoevolux360@gmail.com" 
-            aria-label="Enviar e-mail para Evolux360"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <Mail className="w-6 h-6" />
-          </a>
-          <a 
-            href="https://wa.me/5551993417866?text=%F0%9F%91%8B%20Ol%C3%A1!%20Obrigado%20por%20entrar%20em%20contato.%20Como%20posso%20ajudar%20voc%C3%AA%20hoje%3F" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            aria-label="Contato via WhatsApp da Evolux360"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            {/* 2. Usamos o ícone 'Phone' aqui */}
-            <Phone className="w-6 h-6" />
-          </a>
-        </div>
-        
-        <div className="border-t border-gray-800 pt-8 text-center">
-          <p className="text-sm text-gray-400">
-            Copyright 2025 © Evolux360 - Todos os direitos reservados
+        <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-gray-600">
+            Copyright 2026 © Evolux360 - Todos os direitos reservados
           </p>
+          <div className="flex gap-8 text-[10px] text-gray-600 uppercase font-bold tracking-widest">
+            <a href="#" className="hover:text-white">Privacidade</a>
+            <a href="#" className="hover:text-white">Termos</a>
+          </div>
         </div>
       </div>
     </footer>

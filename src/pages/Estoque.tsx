@@ -53,7 +53,8 @@ const Estoque = () => {
     const toastId = toast.loading("Importando produtos...");
 
     try {
-      const response = await axios.post('http://localhost:8000/import-products', formData );
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await axios.post(`${apiUrl}/import-products`, formData );
       const count = response.data.imported_count || 0;
       toast.success(`${count} produtos importados!`, { id: toastId });
       await fetchAllData(); 
