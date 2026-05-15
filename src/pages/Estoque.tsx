@@ -8,6 +8,7 @@ import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Download, Upload
 import { AddProductModal } from "@/components/AddProductModal";
 import { EditProductModal } from "@/components/EditProductModal";
 import { DeleteProductModal } from "@/components/DeleteProductModal";
+import { ProductDetailsModal } from "@/components/ProductDetailsModal";
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -20,6 +21,7 @@ const Estoque = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -128,7 +130,7 @@ const Estoque = () => {
                   <TableCell>{getStatusBadge(product.stock_quantity)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400" onClick={() => {}}><Eye className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400" onClick={() => { setSelectedProduct(product); setIsDetailsModalOpen(true); }}><Eye className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-[#5932EA]" onClick={() => handleEditClick(product)}><Edit className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400" onClick={() => handleDeleteClick(product)}><Trash2 className="h-4 w-4" /></Button>
                     </div>
@@ -152,6 +154,7 @@ const Estoque = () => {
       
       {selectedProduct && (
         <>
+          <ProductDetailsModal isOpen={isDetailsModalOpen} onClose={() => { setIsDetailsModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} />
           <EditProductModal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} />
           <DeleteProductModal isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} />
         </>

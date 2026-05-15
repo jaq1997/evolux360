@@ -1,149 +1,139 @@
 // src/components/OrderDetailsModal.tsx
 import React from 'react';
-import { Order, OrderItem, Address } from '../context/DataContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from './StatusBadge';
-import { Package, Truck, ShoppingCart, User, MapPin, CreditCard, History } from 'lucide-react';
+import { Package, Truck, ShoppingCart, User, MapPin, CreditCard, History, Calendar } from 'lucide-react';
 
-type OrderStatus = 'novo_pedido' | 'a_separar' | 'separado' | 'a_enviar' | 'enviado' | 'concluido' | 'cancelado' | 'pendente';
+interface OrderDetailsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  order: any;
+}
 
-const statusTimeline: { status: OrderStatus; label: string; icon: React.ElementType }[] = [
-  { status: 'novo_pedido', label: 'Novo Pedido', icon: ShoppingCart },
-  { status: 'a_separar', label: 'Em Separação', icon: Package },
-  { status: 'enviado', label: 'Enviado', icon: Truck },
-  { status: 'concluido', label: 'Concluído', icon: Truck },
-];
-
-const DetailItem = ({ label, value, icon: Icon }: { label: string, value: React.ReactNode, icon?: React.ElementType }) => (
-  <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-    {Icon && <Icon className="w-4 h-4 text-[#5932EA] mt-0.5" />}
-    <div>
-      <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">{label}</p>
-      <p className="text-sm font-semibold text-gray-800">{value || 'N/A'}</p>
-    </div>
-  </div>
-);
-
-export function OrderDetailsModal({ isOpen, onClose, order }: { isOpen: boolean, onClose: () => void, order: Order | null }) {
+export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, order }) => {
   if (!order) return null;
 
-  const items = order.items as unknown as OrderItem[] | null;
-  const address = order.address as unknown as Address | null;
+  // Processamento seguro de itens
+  let items: any[] = [];
+  try {
+    if (order.items) {
+      items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+      if (!Array.isArray(items)) items = [];
+    }
+  } catch (e) { items = []; }
+
+  // Processamento seguro de endereço
+  let address: any = null;
+  try {
+    if (order.address) {
+      address = typeof order.address === 'string' ? JSON.parse(order.address) : order.address;
+    }
+  } catch (e) { address = null; }
+
+  const totalPrice = Number(order.total_price || 0);
+  const customerName = order.customers?.name || order.customer_name || 'Cliente não identificado';
+  const customerEmail = order.customers?.email || order.customer_email || 'E-mail não informado';
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-6 pb-2 border-b bg-white sticky top-0 z-10">
-          <div className="flex justify-between items-center w-full">
-            <DialogTitle className="text-2xl font-bold text-[#5932EA]">Pedido #{order.id}</DialogTitle>
-            <StatusBadge status={order.status as OrderStatus | null} />
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0 border-none outline-none [&>button]:text-white [&>button]:top-4 [&>button]:right-4 z-[9999]">
+        <DialogHeader className="bg-[#5932EA] p-6 space-y-2 text-left shrink-0">
+          <div className="flex items-center gap-4">
+            <DialogTitle className="text-xl font-bold text-white">Pedido #{order.id}</DialogTitle>
+            <div className="bg-white rounded-full px-1"><StatusBadge status={order.status} /></div>
           </div>
+          <DialogDescription className="text-purple-100/80">Detalhes completos da transação e entrega.</DialogDescription>
         </DialogHeader>
         
-        <div className="flex-grow overflow-y-auto p-6 bg-white">
+        <div className="flex-1 overflow-y-auto p-8 bg-white">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Coluna da Esquerda: Itens e Cliente (2/3) */}
             <div className="md:col-span-2 space-y-8">
-              
-              {/* Itens */}
-              <section>
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Package className="w-4 h-4" /> Itens do Pedido
-                </h3>
-                <div className="border rounded-xl overflow-hidden">
+              {/* Seção de Itens */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"><Package className="w-4 h-4" /> Itens</h3>
+                <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
-                        <th className="text-left p-3 font-semibold text-gray-600">Produto</th>
-                        <th className="text-center p-3 font-semibold text-gray-600">Qtd</th>
-                        <th className="text-right p-3 font-semibold text-gray-600">Preço</th>
+                        <th className="text-left p-4 font-bold text-gray-600">Produto</th>
+                        <th className="text-center p-4 font-bold text-gray-600">Qtd</th>
+                        <th className="text-right p-4 font-bold text-gray-600">Total</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
-                      {items && items.length > 0 ? items.map((item, index) => (
-                        <tr key={index}>
-                          <td className="p-3">
-                            <p className="font-medium">{item.product_name}</p>
-                            {(item.color_name || item.size_name) && (
-                              <p className="text-[10px] text-gray-400">
-                                {item.color_name && `Cor: ${item.color_name}`} {item.size_name && `| Tam: ${item.size_name}`}
-                              </p>
-                            )}
-                          </td>
-                          <td className="p-3 text-center text-gray-600">{item.quantity}</td>
-                          <td className="p-3 text-right font-bold">R$ {(item.price * item.quantity).toFixed(2)}</td>
+                    <tbody className="divide-y divide-gray-100">
+                      {items.length > 0 ? items.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="p-4"><p className="font-bold text-gray-800">{item.product_name || 'Produto'}</p></td>
+                          <td className="p-4 text-center text-gray-600">{item.quantity}</td>
+                          <td className="p-4 text-right font-bold text-gray-900">R$ {(Number(item.price || 0) * Number(item.quantity || 0)).toFixed(2).replace('.', ',')}</td>
                         </tr>
                       )) : (
-                        <tr><td colSpan={3} className="p-8 text-center text-gray-400 italic">Nenhum item encontrado.</td></tr>
+                        <tr><td colSpan={3} className="p-8 text-center text-gray-400 italic">Nenhum item.</td></tr>
                       )}
                     </tbody>
-                    <tfoot className="bg-purple-50">
+                    <tfoot className="bg-purple-50/50 border-t">
                       <tr>
-                        <td colSpan={2} className="p-3 text-right font-bold text-[#5932EA]">Total do Pedido</td>
-                        <td className="p-3 text-right font-bold text-[#5932EA] text-lg">R$ {order.total_price?.toFixed(2)}</td>
+                        <td colSpan={2} className="p-4 text-right font-bold text-[#5932EA]">Total</td>
+                        <td className="p-4 text-right font-black text-[#5932EA] text-lg">R$ {totalPrice.toFixed(2).replace('.', ',')}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
-              </section>
+              </div>
 
-              {/* Informações Gerais */}
-              <section className="grid grid-cols-2 gap-4">
-                <DetailItem label="Origem" value={order.origin} icon={ShoppingCart} />
-                <DetailItem label="Método de Pagamento" value={order.payment_method} icon={CreditCard} />
-              </section>
+              {/* Seção de Dados */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Origem</p>
+                  <p className="text-sm font-bold text-gray-800">{order.origin || 'N/A'}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Pagamento</p>
+                  <p className="text-sm font-bold text-gray-800">{String(order.payment_method || 'N/A').replace(/_/g, ' ').toUpperCase()}</p>
+                </div>
+              </div>
 
-              {/* Cliente e Endereço */}
-              <section className="space-y-4">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <User className="w-4 h-4" /> Dados de Entrega
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-xl border">
-                  <div>
-                    <p className="text-xs text-gray-400 font-bold uppercase mb-1">Cliente</p>
-                    <p className="font-semibold text-gray-800">{order.customer_name}</p>
-                    <p className="text-sm text-gray-600">{order.customer_email || 'Sem e-mail'}</p>
+              {/* Seção de Entrega */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"><User className="w-4 h-4" /> Entrega</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">Cliente</p>
+                    <p className="font-bold text-gray-900">{customerName}</p>
+                    <p className="text-xs text-gray-500">{customerEmail}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-400 font-bold uppercase mb-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Localização</p>
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">Endereço</p>
                     {address ? (
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {address.street}, {address.number}<br />
-                        {address.neighborhood}, {address.city} - {address.state}
+                      <p className="text-xs text-gray-700 leading-relaxed font-medium">
+                        {address.street || 'Rua não inf.'}, {address.number || 'S/N'}<br />
+                        {address.neighborhood || ''}, {address.city || ''} - {address.state || ''}
                       </p>
-                    ) : <p className="text-sm text-gray-400 italic">Endereço não informado.</p>}
+                    ) : <p className="text-xs text-gray-400 italic">Não informado.</p>}
                   </div>
                 </div>
-              </section>
-            </div>
-
-            {/* Coluna da Direita: Histórico (1/3) */}
-            <div className="md:col-start-3 space-y-6">
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                <History className="w-4 h-4" /> Histórico
-              </h3>
-              <div className="relative pl-6 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
-                {statusTimeline.map((step, index) => {
-                  const isPastOrCurrent = true; // No modo demo ou sem histórico real, marcamos como visual apenas
-                  return (
-                    <div key={index} className="relative">
-                      <div className={`absolute -left-[19px] top-1 w-[10px] h-[10px] rounded-full border-2 border-white ring-4 ring-white ${order.status === step.status ? 'bg-[#5932EA] ring-[#5932EA]/20' : 'bg-gray-200'}`} />
-                      <div>
-                        <p className={`text-sm font-bold ${order.status === step.status ? 'text-[#5932EA]' : 'text-gray-500'}`}>{step.label}</p>
-                        <p className="text-[10px] text-gray-400">Clique para atualizar status</p>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             </div>
 
+            <div className="space-y-6">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"><History className="w-4 h-4" /> Histórico</h3>
+              <div className="relative pl-6 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
+                {['novo_pedido', 'a_separar', 'enviado', 'concluido'].map((st, i) => (
+                  <div key={st} className="relative">
+                    <div className={`absolute -left-[19px] top-1 w-[10px] h-[10px] rounded-full border-2 border-white ring-4 ring-white ${order.status === st ? 'bg-[#5932EA] ring-[#5932EA]/20' : 'bg-gray-200'}`} />
+                    <p className={`text-xs font-bold ${order.status === st ? 'text-[#5932EA]' : 'text-gray-500'} capitalize`}>{st.replace('_', ' ')}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+        </div>
+        
+        <div className="bg-gray-50 p-6 border-t flex justify-end shrink-0">
+          <Button variant="outline" onClick={onClose} className="h-11 px-8 font-bold text-gray-600">Fechar</Button>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
-
-export default OrderDetailsModal;
+};

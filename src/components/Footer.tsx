@@ -10,9 +10,7 @@ export const Footer = () => {
       <div className="container mx-auto">
         <div className="flex justify-center mb-8">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#5932EA] to-[#7C3AED] rounded-lg flex items-center justify-center">
-              <img src="/logo.svg" alt="Logo" className="w-5 h-5" />
-            </div>
+            <img src="/icone-branco.svg" alt="Logo" className="w-8 h-8" />
             <span className="text-xl font-bold">Evolux360</span>
           </Link>
         </div>

@@ -81,11 +81,12 @@ const Vendas = () => {
         customerName.includes(lowerCaseSearchTerm) ||
         customerEmail.includes(lowerCaseSearchTerm) ||
         origin.includes(lowerCaseSearchTerm) ||
+        (order.payment_method || '').toLowerCase().includes(lowerCaseSearchTerm) ||
         statusLabel.includes(lowerCaseSearchTerm);
 
       const matchesStatus = statusFilter === 'todos' || order.status === statusFilter;
-      const matchesOrigin = originFilter === 'todos' || order.origin === originFilter;
-      const matchesPayment = paymentFilter === 'todos' || order.payment_method === paymentFilter;
+      const matchesOrigin = originFilter === 'todos' || origin === originFilter.toLowerCase();
+      const matchesPayment = paymentFilter === 'todos' || (order.payment_method || '').toLowerCase() === paymentFilter.toLowerCase();
 
       return matchesSearch && matchesStatus && matchesOrigin && matchesPayment;
     });

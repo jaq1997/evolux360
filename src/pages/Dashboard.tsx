@@ -10,7 +10,8 @@ import CRM from "./CRM";
 import Estoque from "./Estoque";
 import Financeiro from "./Financeiro";
 import Vendas from "./Vendas";
-import { LogOut, BarChart3, ShoppingCart, Users, Package, DollarSign, User, ChevronUp } from "lucide-react";
+import Configuracoes from "./Configuracoes";
+import { LogOut, BarChart3, ShoppingCart, Users, Package, DollarSign, User, ChevronUp, Settings } from "lucide-react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarTrigger, SidebarFooter } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -41,8 +42,8 @@ const DashboardCard = ({ title, children }: { title: string, children: React.Rea
 const menuItems = [
   { title: "Dashboard", icon: BarChart3, url: "/dashboard" },
   { title: "Vendas", icon: ShoppingCart, url: "/dashboard/vendas" },
-  { title: "CRM", icon: Users, url: "/dashboard/crm" },
-  { title: "Estoque", icon: Package, url: "/dashboard/estoque" },
+  { title: "Clientes", icon: Users, url: "/dashboard/crm" },
+  { title: "Produtos", icon: Package, url: "/dashboard/estoque" },
   { title: "Financeiro", icon: DollarSign, url: "/dashboard/financeiro" }
 ];
 
@@ -108,45 +109,44 @@ const DashboardHome = () => {
 };
 
 const Dashboard = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [sessionLoading, setSessionLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const [session, setSession] = useState<Session | null>(null);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const isDemoMode = localStorage.getItem('demo_mode') === 'true';
-      
-      if (!session && !isDemoMode) { 
-        navigate("/auth"); 
-      } else { 
-        setSession(session); 
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsSessionLoading(false);
+      if (!session && localStorage.getItem('demo_mode') !== 'true') {
+        navigate("/auth");
       }
-      setSessionLoading(false);
-    };
-    
-    fetchSession();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
-      const isDemoMode = localStorage.getItem('demo_mode') === 'true';
-      if (!session && !isDemoMode) { 
-        navigate('/auth'); 
-      } else { 
-        setSession(session); 
-      } 
     });
-    
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session && localStorage.getItem('demo_mode') !== 'true') {
+        navigate("/auth");
+      }
+    });
+
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('demo_mode');
-    supabase.auth.signOut().then(() => navigate("/"));
+  const handleLogout = async () => {
+    if (localStorage.getItem('demo_mode') === 'true') {
+        localStorage.removeItem('demo_mode');
+        navigate("/");
+        return;
+    }
+    await supabase.auth.signOut();
+    navigate("/");
   };
 
-  if (sessionLoading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  if (isSessionLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5932EA] mx-auto"></div>
         <p className="mt-2 text-gray-600">Verificando sessão...</p>
@@ -156,6 +156,12 @@ const Dashboard = () => {
 
   const getPageTitle = () => {
     const currentPath = location.pathname;
+    
+    // Check if it's the configurations page
+    if (currentPath === "/dashboard/configuracoes") {
+      return "Configurações";
+    }
+    
     const activeItem = menuItems.slice().reverse().find(item => currentPath.startsWith(item.url));
     return activeItem?.title || 'Dashboard';
   };
@@ -169,7 +175,8 @@ const Dashboard = () => {
   };
 
   const userEmail = session?.user?.email || "Admin Demo";
-  const userInitial = userEmail.charAt(0).toUpperCase();
+  const userName = session?.user?.user_metadata?.full_name || userEmail.split('@')[0];
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <SidebarProvider>
@@ -177,11 +184,8 @@ const Dashboard = () => {
         <Sidebar className="border-r border-gray-100">
           <SidebarContent>
             <div className="p-6">
-              <Link to="/dashboard" className="flex items-center space-x-3">
-                <div className="w-9 h-9 bg-gradient-to-br from-[#5932EA] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
-                  <img src="/logo.svg" alt="Logo Evolux360" className="w-5 h-5" />
-                </div>
-                <span className="text-xl font-bold text-[#5932EA] tracking-tight">Evolux360</span>
+              <Link to="/dashboard" className="flex items-center">
+                <img src="/logo-com-tagline.svg" alt="Evolux360" className="h-10 w-auto" />
               </Link>
             </div>
             <SidebarGroup>
@@ -215,14 +219,18 @@ const Dashboard = () => {
                     <AvatarFallback className="bg-purple-50 text-[#5932EA] font-bold">{userInitial}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{userEmail.split('@')[0]}</p>
+                    <p className="text-sm font-bold text-gray-900 truncate">{userName}</p>
                     <p className="text-xs text-gray-500 truncate">{userEmail}</p>
                   </div>
                   <ChevronUp className="w-4 h-4 text-gray-400" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mb-2">
-                <DropdownMenuItem className="text-gray-600"><User className="mr-2 h-4 w-4" /> Perfil (em breve)</DropdownMenuItem>
+                <DropdownMenuItem className="text-gray-600 p-0" asChild>
+                  <Link to="/dashboard/configuracoes" className="w-full flex items-center px-2 py-1.5 cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" /> Configurações
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" /> Sair do Sistema
                 </DropdownMenuItem>
@@ -241,9 +249,11 @@ const Dashboard = () => {
                   <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{getPageTitle()}</h1>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <Badge variant="outline" className="bg-purple-50 text-[#5932EA] border-purple-100 px-3 py-1">
-                      {localStorage.getItem('demo_mode') === 'true' ? 'Modo Demo Ativo' : 'Versão Pro'}
-                    </Badge>
+                    {localStorage.getItem('demo_mode') === 'true' && (
+                      <Badge variant="outline" className="bg-purple-50 text-[#5932EA] border-purple-100 px-3 py-1">
+                        Modo Demo Ativo
+                      </Badge>
+                    )}
                 </div>
               </div>
             </header>
@@ -255,6 +265,7 @@ const Dashboard = () => {
                 <Route path="crm" element={<CRM />} />
                 <Route path="estoque" element={<Estoque />} />
                 <Route path="financeiro" element={<Financeiro />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
               </Routes>
             </main>
           </ScrollArea>

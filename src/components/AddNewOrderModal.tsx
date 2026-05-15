@@ -1,13 +1,12 @@
 // src/components/AddNewOrderModal.tsx
 import React, { useState, useMemo, useCallback } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Search, Plus, Minus, User, Package, CreditCard, ShoppingCart, Trash2 } from 'lucide-react';
-import { useData, Product, NewOrderFormData, Address as AddressType, OrderItem as OrderItemType } from '../context/DataContext';
+import { Search, Plus, Minus, User, Package, CreditCard, ShoppingCart, Trash2, MapPin } from 'lucide-react';
+import { useData, Product, NewOrderFormData, OrderItem as OrderItemType } from '../context/DataContext';
 import { toast } from 'sonner';
 
 interface AddNewOrderModalProps { isOpen: boolean; onClose: () => void; }
@@ -16,7 +15,6 @@ export const AddNewOrderModal: React.FC<AddNewOrderModalProps> = ({ isOpen, onCl
   const { products, createOrder } = useData();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [origin, setOrigin] = useState('WhatsApp');
 
   const [customerData, setCustomerData] = useState({
@@ -55,211 +53,153 @@ export const AddNewOrderModal: React.FC<AddNewOrderModalProps> = ({ isOpen, onCl
       payment_method: paymentMethod,
     };
     
-    const result = await createOrder(newOrderData);
-    if (result) {
-      handleClose();
+    try {
+        const result = await createOrder(newOrderData);
+        if (result) {
+          handleClose();
+        }
+    } catch (e) {
+        toast.error("Erro ao processar pedido.");
+    } finally {
+        setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
-  const addProduct = (p: Product) => {
-    const existing = selectedProducts.find(item => item.product_id === p.id);
+  const addProductToOrder = (product: Product) => {
+    const existing = selectedProducts.find(p => p.product_id === product.id);
     if (existing) {
-      setSelectedProducts(selectedProducts.map(item => item.product_id === p.id ? { ...item, quantity: item.quantity + 1 } : item));
+      setSelectedProducts(prev => prev.map(p => p.product_id === product.id ? { ...p, quantity: p.quantity + 1 } : p));
     } else {
-      setSelectedProducts([...selectedProducts, { product_id: p.id, product_name: p.name, quantity: 1, price: p.price || 0 }]);
+      setSelectedProducts(prev => [...prev, { product_id: product.id, product_name: product.name, price: product.price, quantity: 1 }]);
     }
-    toast.success(`${p.name} adicionado!`);
+    toast.success(`${product.name} adicionado!`);
   };
 
   const removeProduct = (productId: number) => {
-    setSelectedProducts(selectedProducts.filter(item => item.product_id !== productId));
+    setSelectedProducts(prev => prev.filter(p => p.product_id !== productId));
   };
-
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#5932EA] flex items-center gap-2">
-            <ShoppingCart className="w-6 h-6" /> Novo Pedido - Etapa {currentStep} de 3
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] border-none outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
+        <div className="bg-[#5932EA] p-6 shrink-0">
+          <DialogTitle className="text-white text-2xl font-bold flex items-center gap-2">
+            <ShoppingCart className="w-6 h-6" /> Novo Pedido Manual
           </DialogTitle>
-        </DialogHeader>
+          <div className="flex gap-4 mt-4">
+            {[1, 2, 3].map(step => (
+                <div key={step} className={`flex items-center gap-2 text-sm font-bold ${currentStep === step ? 'text-white' : 'text-purple-300'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${currentStep === step ? 'bg-white text-[#5932EA] border-white' : 'border-purple-300'}`}>{step}</div>
+                    {step === 1 ? 'Cliente' : step === 2 ? 'Produtos' : 'Pagamento'}
+                </div>
+            ))}
+          </div>
+        </div>
 
-        <div className="py-4">
+        <div className="flex-1 overflow-y-auto p-8">
           {currentStep === 1 && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-700 mb-2 border-b pb-1">
-                <User className="w-5 h-5 text-[#5932EA]" /> Dados do Cliente
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>Nome Completo</Label>
-                  <Input value={customerData.name} onChange={e => setCustomerData({...customerData, name: e.target.value})} placeholder="Nome do cliente" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 text-lg font-bold text-gray-800 border-b pb-2">
+                    <User className="w-5 h-5 text-[#5932EA]" /> Identificação
                 </div>
-                <div className="space-y-1">
-                  <Label>E-mail</Label>
-                  <Input type="email" value={customerData.email} onChange={e => setCustomerData({...customerData, email: e.target.value})} placeholder="email@exemplo.com" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Telefone</Label>
-                  <Input value={customerData.phone} onChange={e => setCustomerData({...customerData, phone: e.target.value})} placeholder="(00) 00000-0000" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Origem do Pedido</Label>
-                  <Select value={origin} onValueChange={setOrigin}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="WhatsApp">WhatsApp</SelectItem>
-                      <SelectItem value="E-commerce">E-commerce</SelectItem>
-                      <SelectItem value="Instagram">Instagram</SelectItem>
-                      <SelectItem value="Loja Física">Loja Física</SelectItem>
-                      <SelectItem value="Outro">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-4">
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Nome Completo</Label><Input value={customerData.name} onChange={e => setCustomerData({...customerData, name: e.target.value})} placeholder="Nome do cliente" className="border-gray-200" /></div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">E-mail</Label><Input type="email" value={customerData.email} onChange={e => setCustomerData({...customerData, email: e.target.value})} placeholder="email@exemplo.com" className="border-gray-200" /></div>
+                        <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Telefone</Label><Input value={customerData.phone} onChange={e => setCustomerData({...customerData, phone: e.target.value})} placeholder="(00) 00000-0000" className="border-gray-200" /></div>
+                    </div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Origem</Label>
+                        <Select value={origin} onValueChange={setOrigin}>
+                            <SelectTrigger className="border-gray-200"><SelectValue /></SelectTrigger>
+                            <SelectContent><SelectItem value="WhatsApp">WhatsApp</SelectItem><SelectItem value="E-commerce">E-commerce</SelectItem><SelectItem value="Loja Física">Loja Física</SelectItem></SelectContent>
+                        </Select>
+                    </div>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-700 mt-6 border-b pb-1">
-                <Package className="w-5 h-5 text-[#5932EA]" /> Endereço de Entrega
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-1">
-                  <Label>Rua</Label>
-                  <Input value={customerData.address.street} onChange={e => setCustomerData({...customerData, address: {...customerData.address, street: e.target.value}})} />
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 text-lg font-bold text-gray-800 border-b pb-2">
+                    <MapPin className="w-5 h-5 text-[#5932EA]" /> Endereço
                 </div>
-                <div className="space-y-1">
-                  <Label>Número</Label>
-                  <Input value={customerData.address.number} onChange={e => setCustomerData({...customerData, address: {...customerData.address, number: e.target.value}})} />
-                </div>
-                <div className="space-y-1">
-                  <Label>Bairro</Label>
-                  <Input value={customerData.address.neighborhood} onChange={e => setCustomerData({...customerData, address: {...customerData.address, neighborhood: e.target.value}})} />
-                </div>
-                <div className="space-y-1">
-                  <Label>Cidade</Label>
-                  <Input value={customerData.address.city} onChange={e => setCustomerData({...customerData, address: {...customerData.address, city: e.target.value}})} />
-                </div>
-                <div className="space-y-1">
-                  <Label>CEP</Label>
-                  <Input value={customerData.address.zip_code} onChange={e => setCustomerData({...customerData, address: {...customerData.address, zip_code: e.target.value}})} />
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Logradouro / Rua</Label><Input value={customerData.address.street} onChange={e => setCustomerData({...customerData, address: {...customerData.address, street: e.target.value}})} className="border-gray-200" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Número</Label><Input value={customerData.address.number} onChange={e => setCustomerData({...customerData, address: {...customerData.address, number: e.target.value}})} className="border-gray-200" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">CEP</Label><Input value={customerData.address.zip_code} onChange={e => setCustomerData({...customerData, address: {...customerData.address, zip_code: e.target.value}})} className="border-gray-200" /></div>
                 </div>
               </div>
             </div>
           )}
 
           {currentStep === 2 && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-lg font-semibold text-gray-700 border-b pb-1">
-                    <Search className="w-5 h-5 text-[#5932EA]" /> Buscar Produtos
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-right-4 duration-300">
+               <div className="space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input placeholder="Buscar produtos..." className="pl-9 h-11 border-gray-200 rounded-xl shadow-sm" />
                   </div>
-                  <Input placeholder="Pesquisar por nome..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                  <div className="border rounded-lg max-h-[300px] overflow-y-auto">
-                    {filteredProducts.map(p => (
-                      <div key={p.id} className="p-3 flex justify-between items-center hover:bg-gray-50 border-b last:border-0">
-                        <div>
-                          <p className="font-medium">{p.name}</p>
-                          <p className="text-xs text-gray-500">R$ {p.price?.toFixed(2)} | Estoque: {p.stock_quantity}</p>
+                  <div className="border rounded-2xl overflow-hidden max-h-[400px] overflow-y-auto bg-white">
+                    {products.map(p => (
+                        <div key={p.id} className="p-4 border-b last:border-0 flex justify-between items-center hover:bg-gray-50 transition-colors group">
+                            <div><p className="font-bold text-gray-900">{p.name}</p><p className="text-xs text-[#5932EA] font-bold">R$ {p.price.toFixed(2)}</p></div>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full bg-[#5932EA]/5 text-[#5932EA] group-hover:bg-[#5932EA] group-hover:text-white" onClick={() => addProductToOrder(p)}><Plus className="w-4 h-4" /></Button>
                         </div>
-                        <Button size="sm" variant="ghost" className="text-[#5932EA]" onClick={() => addProduct(p)}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
                     ))}
                   </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-lg font-semibold text-gray-700 border-b pb-1">
-                    <ShoppingCart className="w-5 h-5 text-[#5932EA]" /> Itens do Pedido
+               </div>
+               <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col">
+                  <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><ShoppingCart className="w-4 h-4"/> Itens do Pedido</h3>
+                  <div className="flex-1 space-y-3 overflow-y-auto max-h-[300px] mb-4">
+                    {selectedProducts.map(item => (
+                        <div key={item.product_id} className="bg-white p-3 rounded-xl border border-gray-100 flex justify-between items-center shadow-sm">
+                            <div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-900 truncate">{item.product_name}</p><p className="text-xs text-gray-500">{item.quantity}x R$ {item.price.toFixed(2)}</p></div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-600" onClick={() => removeProduct(item.product_id)}><Trash2 className="w-4 h-4" /></Button>
+                        </div>
+                    ))}
+                    {selectedProducts.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">Nenhum item selecionado</div>}
                   </div>
-                  <div className="border rounded-lg min-h-[100px] bg-gray-50/50 p-2">
-                    {selectedProducts.length === 0 ? (
-                      <p className="text-center text-gray-400 py-8 text-sm">Nenhum produto adicionado</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {selectedProducts.map(item => (
-                          <div key={item.product_id} className="flex justify-between items-center bg-white p-2 rounded shadow-sm">
-                            <div className="text-sm">
-                              <p className="font-medium">{item.product_name}</p>
-                              <p className="text-gray-500">{item.quantity}x R$ {item.price.toFixed(2)}</p>
-                            </div>
-                            <Button size="icon" variant="ghost" className="text-red-500 h-8 w-8" onClick={() => removeProduct(item.product_id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="flex justify-between text-lg font-black text-[#5932EA]"><span>Total</span><span>R$ {subtotal.toFixed(2)}</span></div>
                   </div>
-                  <div className="text-right pt-2 border-t">
-                    <p className="text-lg font-bold text-[#5932EA]">Total: R$ {subtotal.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
+               </div>
             </div>
           )}
 
           {currentStep === 3 && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-700 border-b pb-1">
-                <CreditCard className="w-5 h-5 text-[#5932EA]" /> Pagamento
-              </div>
-              <RadioGroup value={paymentMethod} onValueChange={(v: any) => setPaymentMethod(v)} className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="flex items-center space-x-2 border p-3 rounded-lg hover:border-[#5932EA] cursor-pointer">
-                  <RadioGroupItem value="pix" id="pix" />
-                  <Label htmlFor="pix" className="cursor-pointer">PIX</Label>
+            <div className="max-w-xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300">
+                <div className="text-center space-y-2">
+                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CreditCard className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">Forma de Pagamento</h3>
+                    <p className="text-sm text-gray-500">Selecione como o cliente realizará o pagamento.</p>
                 </div>
-                <div className="flex items-center space-x-2 border p-3 rounded-lg hover:border-[#5932EA] cursor-pointer">
-                  <RadioGroupItem value="credit_card" id="cc" />
-                  <Label htmlFor="cc" className="cursor-pointer">Cartão de Crédito</Label>
+                <div className="grid grid-cols-1 gap-3">
+                    {['pix', 'credit_card', 'debit_card', 'cash'].map(method => (
+                        <div key={method} className={`p-4 border-2 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${paymentMethod === method ? 'border-[#5932EA] bg-[#5932EA]/5 ring-4 ring-[#5932EA]/10' : 'border-gray-100 hover:border-gray-200'}`} onClick={() => setPaymentMethod(method as any)}>
+                            <div className="flex items-center gap-3">
+                                <div className={`w-4 h-4 rounded-full border-2 ${paymentMethod === method ? 'border-[#5932EA] bg-[#5932EA]' : 'border-gray-300'}`} />
+                                <span className="font-bold text-gray-700 capitalize">{method.replace('_', ' ')}</span>
+                            </div>
+                            <CreditCard className={`w-5 h-5 ${paymentMethod === method ? 'text-[#5932EA]' : 'text-gray-300'}`} />
+                        </div>
+                    ))}
                 </div>
-                <div className="flex items-center space-x-2 border p-3 rounded-lg hover:border-[#5932EA] cursor-pointer">
-                  <RadioGroupItem value="debit_card" id="dc" />
-                  <Label htmlFor="dc" className="cursor-pointer">Cartão de Débito</Label>
-                </div>
-                <div className="flex items-center space-x-2 border p-3 rounded-lg hover:border-[#5932EA] cursor-pointer">
-                  <RadioGroupItem value="cash" id="cash" />
-                  <Label htmlFor="cash" className="cursor-pointer">Dinheiro</Label>
-                </div>
-                <div className="flex items-center space-x-2 border p-3 rounded-lg hover:border-[#5932EA] cursor-pointer">
-                  <RadioGroupItem value="bank_transfer" id="bt" />
-                  <Label htmlFor="bt" className="cursor-pointer">Transferência</Label>
-                </div>
-              </RadioGroup>
-
-              <div className="bg-purple-50 p-6 rounded-xl border border-purple-100">
-                <h4 className="font-bold text-[#5932EA] mb-4">Resumo do Pedido</h4>
-                <div className="space-y-2 text-sm">
-                  <p className="flex justify-between"><span>Cliente:</span> <span className="font-medium">{customerData.name || 'Não informado'}</span></p>
-                  <p className="flex justify-between"><span>Origem:</span> <span className="font-medium">{origin}</span></p>
-                  <p className="flex justify-between border-t pt-2 mt-2"><span>Subtotal:</span> <span className="font-medium">R$ {subtotal.toFixed(2)}</span></p>
-                  <p className="flex justify-between text-lg font-bold text-[#5932EA]"><span>Total:</span> <span>R$ {subtotal.toFixed(2)}</span></p>
-                </div>
-              </div>
             </div>
           )}
         </div>
 
-        <DialogFooter className="flex justify-between items-center border-t pt-4">
-          <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
-          <div className="flex gap-2">
-            {currentStep > 1 && (
-              <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)}>Anterior</Button>
-            )}
-            {currentStep < 3 ? (
-              <Button onClick={() => setCurrentStep(prev => prev + 1)} className="bg-[#5932EA] hover:bg-[#4C2CA9] text-white">
-                Próximo
-              </Button>
-            ) : (
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-[#5932EA] hover:bg-[#4C2CA9] text-white">
-                {isSubmitting ? 'Finalizando...' : 'Finalizar Pedido'}
-              </Button>
-            )}
-          </div>
+        <DialogFooter className="p-6 bg-gray-50 border-t flex justify-between items-center gap-3">
+            <div className="text-gray-400 text-sm font-medium">Passo {currentStep} de 3</div>
+            <div className="flex gap-3">
+                {currentStep > 1 && <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)} className="h-11 px-8">Voltar</Button>}
+                {currentStep < 3 ? (
+                    <Button onClick={() => setCurrentStep(prev => prev + 1)} className="bg-[#5932EA] hover:bg-[#4A28C7] text-white h-11 px-10 font-bold" disabled={currentStep === 1 && !customerData.name}>Continuar</Button>
+                ) : (
+                    <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white h-11 px-10 font-bold shadow-lg shadow-green-100">
+                        {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+                    </Button>
+                )}
+            </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

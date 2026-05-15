@@ -117,7 +117,12 @@ const KanbanBoard = () => {
     if (!over || !active.data.current?.order || !over.data.current) return;
 
     const orderToMove = active.data.current.order as Order;
-    const newStatus = over.data.current.status as OrderStatus;
+    
+    let newStatus = over.data.current.status as OrderStatus;
+    // Se o usuário soltar sobre outro card (e não na coluna vazia), pegamos o status desse card
+    if (!newStatus && over.data.current.type === 'card' && over.data.current.order) {
+      newStatus = over.data.current.order.status as OrderStatus;
+    }
     
     if (newStatus && orderToMove.status !== newStatus) {
       updateOrder(orderToMove.id, { status: newStatus });
@@ -143,7 +148,9 @@ const KanbanBoard = () => {
         </div>
         <DragOverlay>{activeOrder ? <KanbanCard card={activeOrder} onCardClick={() => {}} /> : null}</DragOverlay>
       </DndContext>
-      <OrderDetailsModal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)} order={selectedOrder} />
+      {selectedOrder && (
+        <OrderDetailsModal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)} order={selectedOrder} />
+      )}
     </>
   );
 };
