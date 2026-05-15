@@ -45,7 +45,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClos
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] border-none outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] !border-none shadow-2xl outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
         <div className="bg-[#5932EA] p-4 shrink-0">
           <DialogTitle className="text-white text-xl font-medium">Adicionar Novo Produto</DialogTitle>
           <DialogDescription className="hidden">Cadastre um novo produto no sistema.</DialogDescription>
@@ -55,9 +55,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClos
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Coluna Esquerda */}
             <div className="space-y-6">
-              <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-2 cursor-pointer hover:bg-gray-100 transition-colors">
+              <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-2 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => document.getElementById('product-image-upload')?.click()}>
                 <Upload className="w-10 h-10 text-gray-400" />
                 <span className="text-sm font-medium text-gray-500">Enviar Foto do Produto</span>
+                <input id="product-image-upload" type="file" className="hidden" accept="image/*" onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                     toast.success("Foto selecionada com sucesso! (Upload em breve)");
+                  }
+                }} />
               </div>
 
               <div className="space-y-2">

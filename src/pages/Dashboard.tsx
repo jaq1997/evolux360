@@ -1,24 +1,17 @@
 // src/pages/Dashboard.tsx
-import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate, useLocation, Link, Routes, Route } from "react-router-dom";
-import { Session } from "@supabase/supabase-js";
+import React from "react";
+import { Routes, Route } from "react-router-dom";
 import { useData, OrderWithCustomer } from '../context/DataContext';
-import { supabase } from "../integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import KanbanBoard from "../components/KanbanBoard";
 import CRM from "./CRM";
 import Estoque from "./Estoque";
 import Financeiro from "./Financeiro";
 import Vendas from "./Vendas";
 import Configuracoes from "./Configuracoes";
-import { LogOut, BarChart3, ShoppingCart, Users, Package, DollarSign, User, ChevronUp, Settings } from "lucide-react";
-import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarTrigger, SidebarFooter } from "@/components/ui/sidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { DollarSign, ShoppingCart } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from '@/components/StatusBadge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AppLayout } from "@/components/AppLayout";
 
 const StatCard = ({ title, value, icon: Icon }: { title: string, value: string, icon: React.ElementType }) => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
@@ -39,13 +32,7 @@ const DashboardCard = ({ title, children }: { title: string, children: React.Rea
   </div>
 );
 
-const menuItems = [
-  { title: "Dashboard", icon: BarChart3, url: "/dashboard" },
-  { title: "Vendas", icon: ShoppingCart, url: "/dashboard/vendas" },
-  { title: "Clientes", icon: Users, url: "/dashboard/crm" },
-  { title: "Produtos", icon: Package, url: "/dashboard/estoque" },
-  { title: "Financeiro", icon: DollarSign, url: "/dashboard/financeiro" }
-];
+
 
 const DashboardHome = () => {
   const { orders, dashboardStats, loading } = useData();
@@ -109,169 +96,17 @@ const DashboardHome = () => {
 };
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [session, setSession] = useState<Session | null>(null);
-  const [isSessionLoading, setIsSessionLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsSessionLoading(false);
-      if (!session && localStorage.getItem('demo_mode') !== 'true') {
-        navigate("/auth");
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session && localStorage.getItem('demo_mode') !== 'true') {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    if (localStorage.getItem('demo_mode') === 'true') {
-        localStorage.removeItem('demo_mode');
-        navigate("/");
-        return;
-    }
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
-  if (isSessionLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5932EA] mx-auto"></div>
-        <p className="mt-2 text-gray-600">Verificando sessão...</p>
-      </div>
-    </div>
-  );
-
-  const getPageTitle = () => {
-    const currentPath = location.pathname;
-    
-    // Check if it's the configurations page
-    if (currentPath === "/dashboard/configuracoes") {
-      return "Configurações";
-    }
-    
-    const activeItem = menuItems.slice().reverse().find(item => currentPath.startsWith(item.url));
-    return activeItem?.title || 'Dashboard';
-  };
-  
-  const isLinkActive = (itemUrl: string) => {
-    const currentPath = location.pathname;
-    if (itemUrl === "/dashboard") {
-      return currentPath === "/dashboard";
-    }
-    return currentPath.startsWith(itemUrl);
-  };
-
-  const userEmail = session?.user?.email || "Admin Demo";
-  const userName = session?.user?.user_metadata?.full_name || userEmail.split('@')[0];
-  const userInitial = userName.charAt(0).toUpperCase();
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
-        <Sidebar className="border-r border-gray-100">
-          <SidebarContent>
-            <div className="p-6">
-              <Link to="/dashboard" className="flex items-center">
-                <img src="/logo-com-tagline.svg" alt="Evolux360" className="h-10 w-auto" />
-              </Link>
-            </div>
-            <SidebarGroup>
-              <SidebarGroupContent className="px-2">
-                <SidebarMenu>
-                  {menuItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <Link 
-                        to={item.url} 
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                          isLinkActive(item.url)
-                            ? 'bg-[#5932EA] text-white shadow-md shadow-purple-100 font-semibold' 
-                            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                        }`}
-                      >
-                        <item.icon className={`w-5 h-5 ${isLinkActive(item.url) ? 'text-white' : ''}`} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-          
-          <SidebarFooter className="p-4 border-t border-gray-100">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-3 w-full p-2 rounded-xl hover:bg-gray-100 transition-colors text-left">
-                  <Avatar className="h-9 w-9 border-2 border-purple-100">
-                    <AvatarFallback className="bg-purple-50 text-[#5932EA] font-bold">{userInitial}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{userName}</p>
-                    <p className="text-xs text-gray-500 truncate">{userEmail}</p>
-                  </div>
-                  <ChevronUp className="w-4 h-4 text-gray-400" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mb-2">
-                <DropdownMenuItem className="text-gray-600 p-0" asChild>
-                  <Link to="/dashboard/configuracoes" className="w-full flex items-center px-2 py-1.5 cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" /> Configurações
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" /> Sair do Sistema
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarFooter>
-        </Sidebar>
-        
-        <div className="flex-1 flex flex-col min-w-0">
-          <ScrollArea className="flex-grow">
-            <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4 sticky top-0 z-40">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-4">
-                  <SidebarTrigger />
-                  <div className="h-6 w-[1px] bg-gray-200 mx-2 hidden md:block"></div>
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{getPageTitle()}</h1>
-                </div>
-                <div className="flex items-center space-x-4">
-                    {localStorage.getItem('demo_mode') === 'true' && (
-                      <Badge variant="outline" className="bg-purple-50 text-[#5932EA] border-purple-100 px-3 py-1">
-                        Modo Demo Ativo
-                      </Badge>
-                    )}
-                </div>
-              </div>
-            </header>
-            
-            <main className="p-6">
-              <Routes>
-                <Route index element={<DashboardHome />} />
-                <Route path="vendas" element={<Vendas />} />
-                <Route path="crm" element={<CRM />} />
-                <Route path="estoque" element={<Estoque />} />
-                <Route path="financeiro" element={<Financeiro />} />
-                <Route path="configuracoes" element={<Configuracoes />} />
-              </Routes>
-            </main>
-          </ScrollArea>
-        </div>
-      </div>
-    </SidebarProvider>
+    <AppLayout>
+      <Routes>
+        <Route index element={<DashboardHome />} />
+        <Route path="vendas" element={<Vendas />} />
+        <Route path="crm" element={<CRM />} />
+        <Route path="estoque" element={<Estoque />} />
+        <Route path="financeiro" element={<Financeiro />} />
+        <Route path="configuracoes" element={<Configuracoes />} />
+      </Routes>
+    </AppLayout>
   );
 };
 

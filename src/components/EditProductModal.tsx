@@ -55,7 +55,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] border-none outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] !border-none shadow-2xl outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
         <div className="bg-[#5932EA] p-4 shrink-0">
           <DialogTitle className="text-white text-xl font-medium">Editar Produto</DialogTitle>
           <DialogDescription className="hidden">Altere as informações do produto selecionado.</DialogDescription>
@@ -64,9 +64,14 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ isOpen, onCl
         <div className="flex-1 overflow-y-auto p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-2 cursor-pointer hover:bg-gray-100 transition-colors">
+              <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-2 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => document.getElementById('edit-product-image-upload')?.click()}>
                 <Upload className="w-10 h-10 text-gray-400" />
                 <span className="text-sm font-medium text-gray-500">Alterar Foto do Produto</span>
+                <input id="edit-product-image-upload" type="file" className="hidden" accept="image/*" onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                     toast.success("Foto selecionada com sucesso! (Upload em breve)");
+                  }
+                }} />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs text-[#5932EA] font-semibold uppercase tracking-wider">Nome do Produto</Label>

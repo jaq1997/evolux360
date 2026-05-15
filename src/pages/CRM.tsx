@@ -68,12 +68,12 @@ const CRM = () => {
   const handleCreateClient = async () => {
     if (!newClientForm.name) { toast.error("Nome é obrigatório"); return; }
     try {
-        const { data, error } = await supabase.from('customers').insert([{ name: newClientForm.name, email: newClientForm.email, phone: newClientForm.phone }]).select();
-        if (error) throw error;
-        toast.success("Cliente cadastrado!");
-        setIsNewClientModalOpen(false);
-        setNewClientForm({ name: '', email: '', phone: '' });
-        fetchAllData();
+        const result = await createCustomer({ name: newClientForm.name, email: newClientForm.email, phone: newClientForm.phone });
+        if (result) {
+            setIsNewClientModalOpen(false);
+            setNewClientForm({ name: '', email: '', phone: '' });
+            fetchAllData();
+        }
     } catch (e: any) { toast.error(e.message); }
   };
 
@@ -106,24 +106,25 @@ const CRM = () => {
 
   return (
     <div className="main-content-min-height space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">CRM & Clientes</h2>
-          <p className="text-gray-500 text-sm">Gerencie sua base de contatos e funil de vendas.</p>
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-2">
+        <div className="flex-1 w-full md:max-w-md">
+            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input placeholder="Buscar por nome, email, telefone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-full"/></div>
         </div>
         <div className="flex items-center gap-3">
-            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-64"/></div>
             <Dialog open={isNewClientModalOpen} onOpenChange={setIsNewClientModalOpen}>
               <DialogTrigger asChild><Button className="bg-[#5932EA] hover:bg-[#4A28C7]"><Plus className="w-4 h-4 mr-2" />Novo Cliente</Button></DialogTrigger>
-              <DialogContent className="sm:max-w-2xl border-none outline-none p-0 overflow-hidden flex flex-col">
+              <DialogContent className="sm:max-w-2xl !border-none shadow-2xl outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
                 <div className="bg-[#5932EA] p-4"><DialogTitle className="text-white">Adicionar Cliente</DialogTitle></div>
-                <div className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1"><Label>Nome</Label><Input value={newClientForm.name} onChange={e => setNewClientForm({...newClientForm, name: e.target.value})} /></div>
-                    <div className="space-y-1"><Label>E-mail</Label><Input value={newClientForm.email} onChange={e => setNewClientForm({...newClientForm, email: e.target.value})} /></div>
-                    <div className="space-y-1 col-span-2"><Label>Telefone</Label><Input value={newClientForm.phone} onChange={e => setNewClientForm({...newClientForm, phone: e.target.value})} /></div>
+                <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Nome Completo</Label><Input value={newClientForm.name} onChange={e => setNewClientForm({...newClientForm, name: e.target.value})} className="bg-gray-50/50" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">E-mail</Label><Input value={newClientForm.email} onChange={e => setNewClientForm({...newClientForm, email: e.target.value})} className="bg-gray-50/50" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Telefone</Label><Input value={newClientForm.phone} onChange={e => setNewClientForm({...newClientForm, phone: e.target.value})} className="bg-gray-50/50" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">CPF/CNPJ</Label><Input placeholder="Opcional" className="bg-gray-50/50" /></div>
+                    <div className="space-y-1 md:col-span-2"><Label className="text-xs font-bold text-gray-400 uppercase">Endereço Completo</Label><Input placeholder="Ex: Rua das Flores, 123 - Centro" className="bg-gray-50/50" /></div>
+                    <div className="space-y-1 md:col-span-2"><Label className="text-xs font-bold text-gray-400 uppercase">Observações e Tags</Label><Textarea placeholder="Informações relevantes sobre este cliente..." className="bg-gray-50/50 resize-none" rows={3} /></div>
                   </div>
-                  <Button onClick={handleCreateClient} className="w-full bg-[#5932EA] hover:bg-[#4A28C7] text-white">Salvar Cliente</Button>
+                  <Button onClick={handleCreateClient} className="w-full bg-[#5932EA] hover:bg-[#4A28C7] text-white h-11 font-bold">Salvar Cliente</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -177,11 +178,16 @@ const CRM = () => {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {["Novo Cliente", "Cliente Recorrente", "Cliente Inativo", "Cliente VIP"].map(status => (
-                        <div key={status} className="bg-gray-50 p-4 rounded-2xl flex flex-col gap-4 border border-gray-100">
-                            <h3 className="font-bold text-gray-700 flex items-center justify-between px-2">{status} <Badge variant="secondary">{filteredClients.filter((c:any) => c.status === status).length}</Badge></h3>
+                    {[
+                      { title: "Novos / Cadastrados", filter: (c: any) => c.status === "Novo Cliente" },
+                      { title: "Ativos / Recorrentes", filter: (c: any) => c.status === "Cliente Recorrente" },
+                      { title: "Em Risco / Inativos", filter: (c: any) => c.status === "Cliente Inativo" },
+                      { title: "VIP / Fidelizados", filter: (c: any) => c.status === "Cliente VIP" }
+                    ].map(stage => (
+                        <div key={stage.title} className="bg-gray-50 p-4 rounded-2xl flex flex-col gap-4 border border-gray-100">
+                            <h3 className="font-bold text-gray-700 flex items-center justify-between px-2">{stage.title} <Badge variant="secondary">{filteredClients.filter(stage.filter).length}</Badge></h3>
                             <div className="space-y-3">
-                                {filteredClients.filter((c:any) => c.status === status).map((client: any) => (
+                                {filteredClients.filter(stage.filter).map((client: any) => (
                                     <div key={client.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleViewClient(client)}>
                                         <div className="font-bold text-gray-900 mb-1">{client.name}</div>
                                         <div className="text-xs text-gray-500 mb-2">R$ {client.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -198,7 +204,7 @@ const CRM = () => {
 
       {/* Modais de Detalhes e Edição */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="sm:max-w-2xl border-none outline-none p-0 overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-2xl !border-none shadow-2xl outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
           <div className="bg-[#5932EA] p-4"><DialogTitle className="text-white">Detalhes do Cliente</DialogTitle></div>
           {selectedClientDetails && (
             <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
@@ -227,7 +233,7 @@ const CRM = () => {
       </Dialog>
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-xl border-none outline-none p-0 overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-xl !border-none shadow-2xl outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
             <div className="bg-[#5932EA] p-4"><DialogTitle className="text-white">Editar Cliente</DialogTitle></div>
             {editingClient && (
                 <div className="p-6 space-y-4">

@@ -1,13 +1,12 @@
-// src/components/ProductDetailsModal.tsx
 import { Product } from '../context/DataContext';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Image as ImageIcon, Package, Tag, Building2, Calendar, DollarSign, BarChart3 } from "lucide-react";
+import { Edit, Image as ImageIcon, Package, Tag, Building2, Calendar, DollarSign, BarChart3 } from "lucide-react";
 import { format, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export const ProductDetailsModal = ({ isOpen, onClose, product }: { isOpen: boolean; onClose: () => void; product: Product }) => {
+export const ProductDetailsModal = ({ isOpen, onClose, product, onEdit }: { isOpen: boolean; onClose: () => void; product: Product; onEdit?: () => void }) => {
   if (!product) return null;
 
   const formattedPrice = product.price?.toFixed(2).replace('.', ',') || '0,00';
@@ -19,7 +18,7 @@ export const ProductDetailsModal = ({ isOpen, onClose, product }: { isOpen: bool
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] border-none outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] !border-none shadow-2xl outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
         <div className="bg-[#5932EA] p-6 shrink-0">
           <DialogTitle className="text-white text-2xl font-bold flex items-center gap-2">
             <Package className="w-6 h-6" /> Detalhes do Produto
@@ -109,7 +108,11 @@ export const ProductDetailsModal = ({ isOpen, onClose, product }: { isOpen: bool
         </div>
 
         <div className="p-6 bg-gray-50 border-t flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose} className="h-11 px-8 border-gray-300">Fechar Janela</Button>
+            {onEdit && (
+              <Button variant="outline" onClick={onEdit} className="h-11 px-8 font-bold text-gray-600 border-gray-300 flex items-center gap-2">
+                  <Edit className="w-4 h-4" /> Editar Produto
+              </Button>
+            )}
             <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white h-11 px-8 font-bold flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" /> Ver Histórico de Vendas
             </Button>

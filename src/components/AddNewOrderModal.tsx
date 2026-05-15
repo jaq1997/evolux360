@@ -81,7 +81,7 @@ export const AddNewOrderModal: React.FC<AddNewOrderModalProps> = ({ isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] border-none outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] !border-none shadow-2xl outline-none p-0 overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-4 [&>button]:right-4">
         <div className="bg-[#5932EA] p-6 shrink-0">
           <DialogTitle className="text-white text-2xl font-bold flex items-center gap-2">
             <ShoppingCart className="w-6 h-6" /> Novo Pedido Manual
@@ -98,33 +98,33 @@ export const AddNewOrderModal: React.FC<AddNewOrderModalProps> = ({ isOpen, onCl
 
         <div className="flex-1 overflow-y-auto p-8">
           {currentStep === 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-right-4 duration-300">
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 text-lg font-bold text-gray-800 border-b pb-2">
-                    <User className="w-5 h-5 text-[#5932EA]" /> Identificação
+            <div className="grid grid-cols-1 gap-6 animate-in fade-in slide-in-from-right-4 duration-300 max-w-4xl mx-auto w-full">
+              <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-6">
+                <div className="flex items-center gap-2 text-lg font-bold text-[#5932EA] border-b border-gray-50 pb-3">
+                    <User className="w-5 h-5" /> Identificação do Cliente
                 </div>
                 <div className="space-y-4">
-                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Nome Completo</Label><Input value={customerData.name} onChange={e => setCustomerData({...customerData, name: e.target.value})} placeholder="Nome do cliente" className="border-gray-200" /></div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">E-mail</Label><Input type="email" value={customerData.email} onChange={e => setCustomerData({...customerData, email: e.target.value})} placeholder="email@exemplo.com" className="border-gray-200" /></div>
-                        <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Telefone</Label><Input value={customerData.phone} onChange={e => setCustomerData({...customerData, phone: e.target.value})} placeholder="(00) 00000-0000" className="border-gray-200" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Nome Completo</Label><Input value={customerData.name} onChange={e => setCustomerData({...customerData, name: e.target.value})} placeholder="Nome do cliente" className="border-gray-200 bg-gray-50/50" /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">E-mail</Label><Input type="email" value={customerData.email} onChange={e => setCustomerData({...customerData, email: e.target.value})} placeholder="email@exemplo.com" className="border-gray-200 bg-gray-50/50" /></div>
+                        <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Telefone</Label><Input value={customerData.phone} onChange={e => setCustomerData({...customerData, phone: e.target.value})} placeholder="(00) 00000-0000" className="border-gray-200 bg-gray-50/50" /></div>
                     </div>
-                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Origem</Label>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Origem da Venda</Label>
                         <Select value={origin} onValueChange={setOrigin}>
-                            <SelectTrigger className="border-gray-200"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="border-gray-200 bg-gray-50/50"><SelectValue /></SelectTrigger>
                             <SelectContent><SelectItem value="WhatsApp">WhatsApp</SelectItem><SelectItem value="E-commerce">E-commerce</SelectItem><SelectItem value="Loja Física">Loja Física</SelectItem></SelectContent>
                         </Select>
                     </div>
                 </div>
               </div>
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 text-lg font-bold text-gray-800 border-b pb-2">
-                    <MapPin className="w-5 h-5 text-[#5932EA]" /> Endereço
+              <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-6">
+                <div className="flex items-center gap-2 text-lg font-bold text-[#5932EA] border-b border-gray-50 pb-3">
+                    <MapPin className="w-5 h-5" /> Endereço de Entrega
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2 space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Logradouro / Rua</Label><Input value={customerData.address.street} onChange={e => setCustomerData({...customerData, address: {...customerData.address, street: e.target.value}})} className="border-gray-200" /></div>
-                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Número</Label><Input value={customerData.address.number} onChange={e => setCustomerData({...customerData, address: {...customerData.address, number: e.target.value}})} className="border-gray-200" /></div>
-                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">CEP</Label><Input value={customerData.address.zip_code} onChange={e => setCustomerData({...customerData, address: {...customerData.address, zip_code: e.target.value}})} className="border-gray-200" /></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2 space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Logradouro / Rua</Label><Input value={customerData.address.street} onChange={e => setCustomerData({...customerData, address: {...customerData.address, street: e.target.value}})} className="border-gray-200 bg-gray-50/50" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">Número</Label><Input value={customerData.address.number} onChange={e => setCustomerData({...customerData, address: {...customerData.address, number: e.target.value}})} className="border-gray-200 bg-gray-50/50" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-bold text-gray-400 uppercase">CEP</Label><Input value={customerData.address.zip_code} onChange={e => setCustomerData({...customerData, address: {...customerData.address, zip_code: e.target.value}})} className="border-gray-200 bg-gray-50/50" /></div>
                 </div>
               </div>
             </div>
