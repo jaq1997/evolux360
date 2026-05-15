@@ -56,9 +56,7 @@ const Auth = () => {
             className="flex items-center space-x-2 mb-10 cursor-pointer" 
             onClick={() => navigate('/')}
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-[#5932EA] to-[#7C3AED] rounded-lg flex items-center justify-center">
-              <img src="/logo.svg" alt="Logo Evolux360" className="w-6 h-6" />
-            </div>
+            <img src="/icone-colorido.svg" alt="Logo Evolux360" className="w-8 h-8" />
             <span className="text-2xl font-bold text-gray-900">Evolux360</span>
           </div>
 

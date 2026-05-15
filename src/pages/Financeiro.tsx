@@ -222,21 +222,45 @@ const Financeiro = () => {
             </Card>
 
             <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-2xl border-none outline-none">
                     <DialogHeader><DialogTitle className="text-[#5932EA]">Nova Transação</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <RadioGroup value={newTrans.type} onValueChange={v => setNewTrans({...newTrans, type: v})} className="grid grid-cols-2 gap-4">
-                            <div className={`border p-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer ${newTrans.type === 'Entrada' ? 'border-green-500 bg-green-50' : ''}`} onClick={() => setNewTrans({...newTrans, type: 'Entrada'})}>
-                                <ArrowUp className="w-4 h-4 text-green-600" /> <span className="font-bold text-green-600">Entrada</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                        <div className="space-y-4">
+                            <Label>Tipo de Transação</Label>
+                            <RadioGroup value={newTrans.type} onValueChange={v => setNewTrans({...newTrans, type: v})} className="grid grid-cols-2 gap-4">
+                                <div className={`border p-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-colors ${newTrans.type === 'Entrada' ? 'border-green-500 bg-green-50' : 'hover:bg-gray-50'}`} onClick={() => setNewTrans({...newTrans, type: 'Entrada'})}>
+                                    <ArrowUp className="w-4 h-4 text-green-600" /> <span className="font-bold text-green-600">Entrada</span>
+                                </div>
+                                <div className={`border p-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-colors ${newTrans.type === 'Saída' ? 'border-red-500 bg-red-50' : 'hover:bg-gray-50'}`} onClick={() => setNewTrans({...newTrans, type: 'Saída'})}>
+                                    <ArrowDown className="w-4 h-4 text-red-600" /> <span className="font-bold text-red-600">Saída</span>
+                                </div>
+                            </RadioGroup>
+                            
+                            <div className="space-y-1">
+                                <Label>Responsável</Label>
+                                <Input value={localStorage.getItem('demo_mode') === 'true' ? 'Admin Demo' : 'Usuário Logado'} disabled className="bg-gray-50 text-gray-500" />
+                                <p className="text-[10px] text-gray-400">O responsável é definido automaticamente pelo login.</p>
                             </div>
-                            <div className={`border p-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer ${newTrans.type === 'Saída' ? 'border-red-500 bg-red-50' : ''}`} onClick={() => setNewTrans({...newTrans, type: 'Saída'})}>
-                                <ArrowDown className="w-4 h-4 text-red-600" /> <span className="font-bold text-red-600">Saída</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-1"><Label>Origem / Descrição</Label><Input value={newTrans.origin} onChange={e => setNewTrans({...newTrans, origin: e.target.value})} placeholder="Ex: Venda #101" /></div>
+                            <div className="space-y-1"><Label>Valor (R$)</Label><Input type="number" value={newTrans.value} onChange={e => setNewTrans({...newTrans, value: e.target.value})} placeholder="0.00" /></div>
+                            <div className="space-y-1">
+                                <Label>Forma de Pagamento</Label>
+                                <Select value={newTrans.payment_method} onValueChange={v => setNewTrans({...newTrans, payment_method: v})}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Pix">Pix</SelectItem>
+                                        <SelectItem value="Cartão">Cartão</SelectItem>
+                                        <SelectItem value="Boleto">Boleto</SelectItem>
+                                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
-                        </RadioGroup>
-                        <div className="space-y-1"><Label>Origem / Descrição</Label><Input value={newTrans.origin} onChange={e => setNewTrans({...newTrans, origin: e.target.value})} placeholder="Ex: Venda #101" /></div>
-                        <div className="space-y-1"><Label>Valor (R$)</Label><Input type="number" value={newTrans.value} onChange={e => setNewTrans({...newTrans, value: e.target.value})} placeholder="0.00" /></div>
+                        </div>
                     </div>
-                    <DialogFooter><Button className="w-full bg-[#5932EA] hover:bg-[#4A28C7]" onClick={handleAddTransaction}>Salvar Transação</Button></DialogFooter>
+                    <DialogFooter><Button className="w-full bg-[#5932EA] hover:bg-[#4A28C7] h-11" onClick={handleAddTransaction}>Salvar Transação</Button></DialogFooter>
                 </DialogContent>
             </Dialog>
 

@@ -7,13 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Plus, Search, Eye, Edit, Phone, Mail, MapPin, DollarSign, PieChart as PieChartIcon, TrendingUp, Clock, ShoppingCart } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Users, Plus, Search, Eye, Edit, Phone, Mail, MapPin, DollarSign, PieChart as PieChartIcon, TrendingUp, Clock, ShoppingCart, LayoutGrid, List } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
 import { supabase } from "../integrations/supabase/client";
-import { StatusBadge } from "@/components/StatusBadge";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const MetricCard = ({ title, value, subtext, icon: Icon, iconClass }: { title: string, value: string | number, subtext: string, icon: React.ElementType, iconClass?: string }) => (
@@ -35,6 +34,7 @@ const CRM = () => {
   const { customerInsights, customers, orders, loading, fetchAllData, createCustomer, setCustomers } = useData() as any;
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   
   const [selectedClient, setSelectedClient] = useState<CustomerInsight | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -44,127 +44,98 @@ const CRM = () => {
   const [newClientForm, setNewClientForm] = useState({ name: '', email: '', phone: '' });
   const [editingClient, setEditingClient] = useState<Customer | null>(null);
 
-  const filteredClients = useMemo(() => customerInsights.filter((client: any) =>
-      client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  ), [customerInsights, searchTerm]);
+  const filteredClients = useMemo(() => customerInsights.filter((client: any) => {
+      const lowerSearch = searchTerm.toLowerCase();
+      return client.name?.toLowerCase().includes(lowerSearch) ||
+             client.email?.toLowerCase().includes(lowerSearch) ||
+             client.phone?.toLowerCase().includes(lowerSearch) ||
+             client.status?.toLowerCase().includes(lowerSearch);
+  }), [customerInsights, searchTerm]);
   
   const dashboardStats = useMemo(() => {
       if (!customerInsights) return { totalClients: 0, totalRevenue: 0, newClientsThisMonth: 0, inactiveClients: 0, statusDistribution: [] };
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const totalRevenue = customerInsights.reduce((sum: number, c: any) => sum + (c.totalValue || 0), 0);
+      const newClients = customerInsights.filter((c: any) => c.status === 'Novo Cliente').length;
+      const inactive = customerInsights.filter((c: any) => c.status === 'Cliente Inativo').length;
       
-      const statusCounts = customerInsights.reduce((acc: any, client: any) => {
-          acc[client.status] = (acc[client.status] || 0) + 1;
-          return acc;
-      }, {} as { [key: string]: number });
+      const counts: any = {};
+      customerInsights.forEach((c: any) => { counts[c.status] = (counts[c.status] || 0) + 1; });
+      const statusDistribution = Object.keys(counts).map(name => ({ name, value: counts[name] }));
 
-      return {
-          totalClients: customerInsights.length,
-          totalRevenue: customerInsights.reduce((sum: number, client: any) => sum + client.totalValue, 0),
-          newClientsThisMonth: customerInsights.filter((c: any) => c.lastOrderDate && new Date(c.lastOrderDate) > thirtyDaysAgo).length,
-          inactiveClients: customerInsights.filter((c: any) => c.status === 'Cliente Inativo').length,
-          statusDistribution: Object.entries(statusCounts).map(([name, value]) => ({ name, value }))
-      };
+      return { totalClients: customerInsights.length, totalRevenue, newClientsThisMonth: newClients, inactiveClients: inactive, statusDistribution };
   }, [customerInsights]);
 
-  const selectedClientDetails = useMemo(() => {
-    if (!selectedClient) return null;
-    const fullCustomerData = customers.find((c: any) => c.id === selectedClient.id);
-    const clientOrders = orders.filter((o: any) => o.customer_id === selectedClient.id).sort((a: any, b: any) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime());
-    return { ...selectedClient, address: fullCustomerData?.customer_addresses?.[0], orders: clientOrders };
-  }, [selectedClient, customers, orders]);
-
-  const handleViewClient = (client: CustomerInsight) => { setSelectedClient(client); setIsDetailsModalOpen(true); };
-  
-  const handleOpenEditModal = (client: CustomerInsight) => {
-    const clientData = customers.find((c: any) => c.id === client.id);
-    if (clientData) {
-      setEditingClient(clientData);
-      setIsEditModalOpen(true);
-    }
-  };
-
   const handleCreateClient = async () => {
-    const isDemoMode = localStorage.getItem('demo_mode') === 'true';
-    if (isDemoMode) {
-      await createCustomer({ ...newClientForm });
-      setIsNewClientModalOpen(false);
-      setNewClientForm({ name: '', email: '', phone: '' });
-      return;
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error("Você precisa estar logado."); return; }
-    
+    if (!newClientForm.name) { toast.error("Nome é obrigatório"); return; }
     try {
-      const { error } = await supabase.from('customers').insert({ ...newClientForm, user_id: user.id });
-      if (error) throw error;
-      await fetchAllData();
-      setIsNewClientModalOpen(false);
-      setNewClientForm({ name: '', email: '', phone: '' });
-      toast.success('Cliente criado com sucesso!');
-    } catch (error) { toast.error('Erro ao criar cliente.'); }
+        const { data, error } = await supabase.from('customers').insert([{ name: newClientForm.name, email: newClientForm.email, phone: newClientForm.phone }]).select();
+        if (error) throw error;
+        toast.success("Cliente cadastrado!");
+        setIsNewClientModalOpen(false);
+        setNewClientForm({ name: '', email: '', phone: '' });
+        fetchAllData();
+    } catch (e: any) { toast.error(e.message); }
   };
 
   const handleUpdateClient = async () => {
     if (!editingClient) return;
-    const isDemoMode = localStorage.getItem('demo_mode') === 'true';
-    
-    if (isDemoMode) {
-      setCustomers((prev: any) => prev.map((c: any) => c.id === editingClient.id ? { ...c, ...editingClient } : c));
-      setIsEditModalOpen(false);
-      setEditingClient(null);
-      toast.success('Cliente atualizado (Modo Demo)!');
-      return;
-    }
-
     try {
-      const { error } = await supabase.from('customers').update({ name: editingClient.name, email: editingClient.email, phone: editingClient.phone }).eq('id', editingClient.id);
-      if (error) throw error;
-      await fetchAllData();
-      setIsEditModalOpen(false);
-      setEditingClient(null);
-      toast.success('Cliente atualizado com sucesso!');
-    } catch (error) { toast.error('Erro ao atualizar cliente.'); }
+        const { error } = await supabase.from('customers').update({ name: editingClient.name, email: editingClient.email, phone: editingClient.phone }).eq('id', editingClient.id);
+        if (error) throw error;
+        toast.success("Cliente atualizado!");
+        setIsEditModalOpen(false);
+        fetchAllData();
+    } catch (e: any) { toast.error(e.message); }
   };
 
-  if (loading && customerInsights.length === 0) {
-    return <div className="flex h-full items-center justify-center"><p>Analisando dados do CRM...</p></div>;
-  }
+  const handleViewClient = (client: any) => {
+      setSelectedClient(client);
+      setIsDetailsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (client: any) => {
+      setEditingClient(client);
+      setIsEditModalOpen(true);
+  };
+
+  const selectedClientDetails = useMemo(() => {
+      if (!selectedClient) return null;
+      const clientOrders = orders.filter((o: any) => o.customer_email === selectedClient.email || o.customer_name === selectedClient.name);
+      return { ...selectedClient, orders: clientOrders };
+  }, [selectedClient, orders]);
 
   return (
-    <div className="main-content-min-height">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
-        <div className="flex flex-col gap-4">
-          <div className="relative w-full"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Buscar Cliente..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9"/></div>
-          <div className="flex justify-between items-center">
-            <TabsList><TabsTrigger value="dashboard">Visão Geral</TabsTrigger><TabsTrigger value="list">Lista de Clientes</TabsTrigger></TabsList>
+    <div className="main-content-min-height space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">CRM & Clientes</h2>
+          <p className="text-gray-500 text-sm">Gerencie sua base de contatos e funil de vendas.</p>
+        </div>
+        <div className="flex items-center gap-3">
+            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-64"/></div>
             <Dialog open={isNewClientModalOpen} onOpenChange={setIsNewClientModalOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-[#5932EA] hover:bg-[#4A28C7]">
-                  <Plus className="w-4 h-4 mr-2" />Novo Cliente
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle className="text-[#5932EA]">Adicionar Novo Cliente</DialogTitle>
-                </DialogHeader>
-                <div className="grid grid-cols-2 gap-4 py-4">
-                  <div className="space-y-2 col-span-2"><Label>Nome Completo</Label><Input value={newClientForm.name} onChange={(e) => setNewClientForm(p => ({...p, name: e.target.value}))} /></div>
-                  <div className="space-y-2"><Label>E-mail</Label><Input type="email" value={newClientForm.email} onChange={(e) => setNewClientForm(p => ({...p, email: e.target.value}))} /></div>
-                  <div className="space-y-2"><Label>Telefone</Label><Input value={newClientForm.phone} onChange={(e) => setNewClientForm(p => ({...p, phone: e.target.value}))} /></div>
-                  <div className="space-y-2 col-span-2"><Label>Notas</Label><Textarea placeholder="Interesses do cliente..." onChange={(e) => (newClientForm as any).notes = e.target.value}/></div>
+              <DialogTrigger asChild><Button className="bg-[#5932EA] hover:bg-[#4A28C7]"><Plus className="w-4 h-4 mr-2" />Novo Cliente</Button></DialogTrigger>
+              <DialogContent className="sm:max-w-2xl border-none outline-none p-0 overflow-hidden flex flex-col">
+                <div className="bg-[#5932EA] p-4"><DialogTitle className="text-white">Adicionar Cliente</DialogTitle></div>
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label>Nome</Label><Input value={newClientForm.name} onChange={e => setNewClientForm({...newClientForm, name: e.target.value})} /></div>
+                    <div className="space-y-1"><Label>E-mail</Label><Input value={newClientForm.email} onChange={e => setNewClientForm({...newClientForm, email: e.target.value})} /></div>
+                    <div className="space-y-1 col-span-2"><Label>Telefone</Label><Input value={newClientForm.phone} onChange={e => setNewClientForm({...newClientForm, phone: e.target.value})} /></div>
+                  </div>
+                  <Button onClick={handleCreateClient} className="w-full bg-[#5932EA] hover:bg-[#4A28C7] text-white">Salvar Cliente</Button>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsNewClientModalOpen(false)}>Cancelar</Button>
-                  <Button onClick={handleCreateClient} className="bg-[#5932EA] hover:bg-[#4A28C7]">Criar Cliente</Button>
-                </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
         </div>
-        
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
+        <TabsList className="bg-transparent border-b border-gray-200 w-full justify-start rounded-none h-auto p-0 space-x-8">
+          <TabsTrigger value="dashboard" className="data-[state=active]:border-b-2 data-[state=active]:border-[#5932EA] data-[state=active]:text-[#5932EA] data-[state=active]:shadow-none rounded-none px-0 pb-4 pt-2 font-semibold">Resumo</TabsTrigger>
+          <TabsTrigger value="list" className="data-[state=active]:border-b-2 data-[state=active]:border-[#5932EA] data-[state=active]:text-[#5932EA] data-[state=active]:shadow-none rounded-none px-0 pb-4 pt-2 font-semibold">Gestão de Clientes</TabsTrigger>
+        </TabsList>
+
         <TabsContent value="dashboard" className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <MetricCard title="Total de Clientes" value={dashboardStats.totalClients} subtext="Clientes na base" icon={Users} />
@@ -173,101 +144,101 @@ const CRM = () => {
               <MetricCard title="Inativos" value={dashboardStats.inactiveClients} subtext="> 90 dias" icon={Clock} iconClass="text-yellow-500" />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                  <CardHeader><CardTitle>Clientes Inativos</CardTitle></CardHeader>
-                  <CardContent className="space-y-4">
-                      {customerInsights.filter((c:any) => c.status === 'Cliente Inativo').slice(0, 5).map((client:any) => (
-                          <div key={client.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
-                              <div><p className="font-medium text-sm">{client.name}</p><p className="text-xs text-gray-500">{client.daysSinceLastOrder} dias sem comprar</p></div>
-                              <Button variant="ghost" size="sm" onClick={() => handleViewClient(client)}>Ver</Button>
-                          </div>
-                      ))}
-                  </CardContent>
-              </Card>
-              <Card>
-                  <CardHeader><CardTitle>Status dos Clientes</CardTitle></CardHeader>
-                  <CardContent className="h-[250px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                              <Pie data={dashboardStats.statusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
-                                  {dashboardStats.statusDistribution.map((entry, index) => (<Cell key={`cell-${index}`} fill={getStatusColor(entry.name).chart} />))}
-                              </Pie>
-                              <Tooltip /><Legend />
-                          </PieChart>
-                      </ResponsiveContainer>
-                  </CardContent>
-              </Card>
+              <Card><CardHeader><CardTitle>Status dos Clientes</CardTitle></CardHeader><CardContent className="h-[300px]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={dashboardStats.statusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100}>{dashboardStats.statusDistribution.map((entry, index) => (<Cell key={`cell-${index}`} fill={getStatusColor(entry.name).chart} />))}</Pie><Tooltip /><Legend /></PieChart></ResponsiveContainer></CardContent></Card>
+              <Card><CardHeader><CardTitle>Últimos Clientes Ativos</CardTitle></CardHeader><CardContent className="space-y-4">{customerInsights.slice(0, 5).map((c:any) => (<div key={c.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg"><div><p className="font-medium text-sm">{c.name}</p><p className="text-xs text-gray-500">{c.email}</p></div><Badge className={getStatusColor(c.status).badge}>{c.status}</Badge></div>))}</CardContent></Card>
           </div>
         </TabsContent>
-        
-        <TabsContent value="list">
-            <Card>
-              <Table>
-                <TableHeader><TableRow><TableHead>Cliente</TableHead><TableHead>Status</TableHead><TableHead>Pedidos</TableHead><TableHead>Total</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {filteredClients.map((client: any) => (
-                    <TableRow key={client.id}>
-                      <TableCell><div className="font-medium">{client.name}</div><div className="text-xs text-gray-400">{client.email}</div></TableCell>
-                      <TableCell><Badge variant="outline" className={getStatusColor(client.status).badge}>{client.status}</Badge></TableCell>
-                      <TableCell className="text-center">{client.totalOrders}</TableCell>
-                      <TableCell className="font-bold text-[#5932EA]">R$ {client.totalValue.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => handleViewClient(client)}><Eye className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditModal(client)}><Edit className="h-4 w-4 text-[#5932EA]" /></Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-        </TabsContent>
 
-        <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-          <DialogContent className="sm:max-w-3xl">
-            {selectedClientDetails && (
-              <>
-                <DialogHeader><DialogTitle className="text-2xl text-[#5932EA]">{selectedClientDetails.name}</DialogTitle></DialogHeader>
-                <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3"><Mail className="text-gray-400 w-4 h-4"/> <span>{selectedClientDetails.email}</span></div>
-                        <div className="flex items-center gap-3"><Phone className="text-gray-400 w-4 h-4"/> <span>{selectedClientDetails.phone || 'N/A'}</span></div>
-                        {selectedClientDetails.address && <div className="flex items-start gap-3"><MapPin className="text-gray-400 w-4 h-4 mt-1"/> <span className="text-sm">{selectedClientDetails.address.street}, {selectedClientDetails.address.number} - {selectedClientDetails.address.city}</span></div>}
-                    </div>
-                    <div className="space-y-2">
-                        <h4 className="font-bold flex items-center gap-2 mb-2"><ShoppingCart className="w-4 h-4"/> Últimos Pedidos</h4>
-                        <div className="border rounded-lg max-h-48 overflow-y-auto">
-                            {selectedClientDetails.orders.map((o: any) => (
-                                <div key={o.id} className="p-2 border-b last:border-0 flex justify-between text-sm">
-                                    <span>#{o.id} - {new Date(o.created_at).toLocaleDateString()}</span>
-                                    <span className="font-bold">R$ {o.total_price?.toFixed(2)}</span>
-                                </div>
+        <TabsContent value="list" className="space-y-4">
+            <div className="flex justify-end gap-2 mb-2">
+                <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('list')} className={viewMode === 'list' ? 'bg-[#5932EA]' : ''}><List className="w-4 h-4 mr-2" /> Lista</Button>
+                <Button variant={viewMode === 'kanban' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('kanban')} className={viewMode === 'kanban' ? 'bg-[#5932EA]' : ''}><LayoutGrid className="w-4 h-4 mr-2" /> Kanban</Button>
+            </div>
+
+            {viewMode === 'list' ? (
+                <Card className="border-none shadow-sm overflow-hidden">
+                    <Table>
+                        <TableHeader><TableRow className="bg-gray-50"><TableHead>Cliente</TableHead><TableHead>Status</TableHead><TableHead className="text-center">Pedidos</TableHead><TableHead>Total Gasto</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            {filteredClients.map((client: any) => (
+                                <TableRow key={client.id} className="hover:bg-gray-50/50 cursor-pointer" onClick={() => handleViewClient(client)}>
+                                    <TableCell><div className="font-bold text-gray-900">{client.name}</div><div className="text-xs text-gray-400">{client.email}</div></TableCell>
+                                    <TableCell><Badge variant="outline" className={getStatusColor(client.status).badge}>{client.status}</Badge></TableCell>
+                                    <TableCell className="text-center">{client.totalOrders}</TableCell>
+                                    <TableCell className="font-bold text-[#5932EA]">R$ {client.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                                    <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+                                        <Button variant="ghost" size="icon" onClick={() => handleViewClient(client)}><Eye className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleOpenEditModal(client)}><Edit className="h-4 w-4 text-[#5932EA]" /></Button>
+                                    </TableCell>
+                                </TableRow>
                             ))}
+                        </TableBody>
+                    </Table>
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {["Novo Cliente", "Cliente Recorrente", "Cliente Inativo", "Cliente VIP"].map(status => (
+                        <div key={status} className="bg-gray-50 p-4 rounded-2xl flex flex-col gap-4 border border-gray-100">
+                            <h3 className="font-bold text-gray-700 flex items-center justify-between px-2">{status} <Badge variant="secondary">{filteredClients.filter((c:any) => c.status === status).length}</Badge></h3>
+                            <div className="space-y-3">
+                                {filteredClients.filter((c:any) => c.status === status).map((client: any) => (
+                                    <div key={client.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleViewClient(client)}>
+                                        <div className="font-bold text-gray-900 mb-1">{client.name}</div>
+                                        <div className="text-xs text-gray-500 mb-2">R$ {client.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                                        <div className="text-[10px] text-[#5932EA] font-bold">{client.totalOrders} pedidos</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+                    ))}
+                </div>
+            )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Modais de Detalhes e Edição */}
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent className="sm:max-w-2xl border-none outline-none p-0 overflow-hidden flex flex-col">
+          <div className="bg-[#5932EA] p-4"><DialogTitle className="text-white">Detalhes do Cliente</DialogTitle></div>
+          {selectedClientDetails && (
+            <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
+                <div className="flex items-center gap-4 border-b pb-4">
+                    <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-2xl font-bold text-[#5932EA]">{selectedClientDetails.name.charAt(0)}</div>
+                    <div><h3 className="text-xl font-bold">{selectedClientDetails.name}</h3><Badge className={getStatusColor(selectedClientDetails.status).badge}>{selectedClientDetails.status}</Badge></div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label className="text-gray-400 text-xs">E-MAIL</Label><p className="font-medium">{selectedClientDetails.email}</p></div>
+                    <div className="space-y-1"><Label className="text-gray-400 text-xs">TELEFONE</Label><p className="font-medium">{selectedClientDetails.phone || 'N/A'}</p></div>
+                </div>
+                <div className="space-y-2">
+                    <Label className="text-gray-400 text-xs">HISTÓRICO DE PEDIDOS</Label>
+                    <div className="border rounded-xl overflow-hidden">
+                        {selectedClientDetails.orders.length > 0 ? selectedClientDetails.orders.map((o:any) => (
+                            <div key={o.id} className="p-3 border-b last:border-0 flex justify-between items-center hover:bg-gray-50">
+                                <div><p className="font-bold text-sm">Pedido #{o.id}</p><p className="text-xs text-gray-500">{new Date(o.created_at).toLocaleDateString()}</p></div>
+                                <p className="font-bold text-[#5932EA]">R$ {o.total_price.toFixed(2)}</p>
+                            </div>
+                        )) : <p className="p-4 text-center text-gray-400 italic">Nenhum pedido realizado.</p>}
                     </div>
                 </div>
-                <DialogFooter><Button variant="outline" onClick={() => setIsDetailsModalOpen(false)}>Fechar</Button></DialogFooter>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Editar Cliente</DialogTitle></DialogHeader>
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-xl border-none outline-none p-0 overflow-hidden flex flex-col">
+            <div className="bg-[#5932EA] p-4"><DialogTitle className="text-white">Editar Cliente</DialogTitle></div>
             {editingClient && (
-              <div className="space-y-4 py-4">
-                <div className="space-y-1"><Label>Nome</Label><Input value={editingClient.name} onChange={(e) => setEditingClient({...editingClient, name: e.target.value})} /></div>
-                <div className="space-y-1"><Label>E-mail</Label><Input value={editingClient.email || ''} onChange={(e) => setEditingClient({...editingClient, email: e.target.value})} /></div>
-                <div className="space-y-1"><Label>Telefone</Label><Input value={editingClient.phone || ''} onChange={(e) => setEditingClient({...editingClient, phone: e.target.value})} /></div>
-              </div>
+                <div className="p-6 space-y-4">
+                    <div className="space-y-1"><Label>Nome</Label><Input value={editingClient.name} onChange={e => setEditingClient({...editingClient, name: e.target.value})} /></div>
+                    <div className="space-y-1"><Label>E-mail</Label><Input value={editingClient.email || ''} onChange={e => setEditingClient({...editingClient, email: e.target.value})} /></div>
+                    <div className="space-y-1"><Label>Telefone</Label><Input value={editingClient.phone || ''} onChange={e => setEditingClient({...editingClient, phone: e.target.value})} /></div>
+                    <Button onClick={handleUpdateClient} className="w-full bg-[#5932EA] hover:bg-[#4A28C7] text-white">Salvar Alterações</Button>
+                </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
-              <Button onClick={handleUpdateClient} className="bg-[#5932EA] hover:bg-[#4A28C7]">Salvar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </Tabs>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

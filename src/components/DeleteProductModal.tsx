@@ -39,22 +39,22 @@ export const DeleteProductModal: React.FC<DeleteProductModalProps> = ({ isOpen, 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="text-destructive" />
-            Confirmar Exclusão
-          </DialogTitle>
-          <DialogDescription className="pt-2">
-            Você tem certeza que deseja excluir o produto <strong>{product.name}</strong>? Esta ação não poderá ser desfeita.
+      <DialogContent className="sm:max-w-[400px] p-6 text-center [&>button]:right-4 [&>button]:top-4">
+        <div className="flex flex-col items-center justify-center space-y-4 pt-4">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+             <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <DialogTitle className="text-xl font-bold text-gray-900">Confirmar Exclusão</DialogTitle>
+          <DialogDescription className="text-sm text-gray-500 max-w-[280px] mx-auto">
+            Você tem certeza que deseja excluir o produto <strong className="text-gray-800">{product.name}</strong>? Esta ação não poderá ser desfeita.
           </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
-            {isSubmitting ? 'Excluindo...' : 'Sim, excluir produto'}
+        </div>
+        <div className="flex gap-3 w-full mt-6">
+          <Button variant="outline" onClick={onClose} className="w-full border-gray-300">Cancelar</Button>
+          <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting} className="w-full bg-red-500 hover:bg-red-600 text-white">
+            {isSubmitting ? 'Excluindo...' : 'Sim, excluir'}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

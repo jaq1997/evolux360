@@ -77,11 +77,7 @@ export const Header = () => {
     <header className="bg-white border-b border-gray-100 p-4 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#5932EA] to-[#7C3AED] rounded-lg flex items-center justify-center">
-            <img src="/logo.svg" alt="Logo" className="w-5 h-5" />
-          </div>
-          {/* AJUSTE: Classes 'hidden sm:inline' removidas para o texto sempre aparecer */}
-          <span className="text-xl font-bold text-gray-900">Evolux360</span>
+          <img src="/logo-com-tagline.svg" alt="Evolux360" className="h-10 w-auto" />
         </Link>
 
         {/* Navegação Desktop (some em telas menores que 'md') */}
