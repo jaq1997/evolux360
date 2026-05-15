@@ -265,13 +265,20 @@ const Financeiro = () => {
             </Dialog>
 
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent>
-                    <DialogHeader><DialogTitle className="flex items-center gap-2 text-red-600"><AlertTriangle /> Excluir</DialogTitle></DialogHeader>
-                    <p className="py-4 text-gray-600">Deseja excluir a transação de <strong>R$ {selectedTransaction?.value.toFixed(2)}</strong>?</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
-                        <Button variant="destructive" onClick={() => handleDeleteTransaction(selectedTransaction?.id)}>Sim, Excluir</Button>
-                    </DialogFooter>
+                <DialogContent className="sm:max-w-[400px] p-6 text-center [&>button]:right-4 [&>button]:top-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-col items-center justify-center space-y-4 pt-4">
+                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+                            <AlertTriangle className="w-8 h-8 text-red-500" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold text-gray-900">Confirmar Exclusão</DialogTitle>
+                        <DialogDescription className="text-sm text-gray-500 max-w-[280px] mx-auto">
+                            Deseja excluir a transação de <strong className="text-gray-800">R$ {selectedTransaction?.value?.toFixed(2)}</strong>? Esta ação não poderá ser desfeita.
+                        </DialogDescription>
+                    </div>
+                    <div className="flex gap-3 w-full mt-6">
+                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} className="w-full border-gray-300">Voltar</Button>
+                        <Button variant="destructive" onClick={() => handleDeleteTransaction(selectedTransaction?.id)} className="w-full bg-red-500 hover:bg-red-600 text-white">Sim, excluir</Button>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

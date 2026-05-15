@@ -63,15 +63,20 @@ function KanbanCard({ card, onCardClick }: { card: Order; onCardClick: (card: Or
         </div>
       </div>
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
-        <DialogContent onClick={(e) => e.stopPropagation()}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" />Confirmar Cancelamento</DialogTitle>
-            <DialogDescription>Você tem certeza que deseja cancelar o <strong>Pedido #{card.id}</strong>?</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCancelModalOpen(false)}>Voltar</Button>
-            <Button variant="destructive" onClick={confirmCancel}>Sim, cancelar pedido</Button>
-          </DialogFooter>
+        <DialogContent className="sm:max-w-[400px] p-6 text-center [&>button]:right-4 [&>button]:top-4" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-gray-900">Confirmar Cancelamento</DialogTitle>
+            <DialogDescription className="text-sm text-gray-500 max-w-[280px] mx-auto">
+              Você tem certeza que deseja cancelar o <strong>Pedido #{card.id}</strong>? Esta ação não poderá ser desfeita.
+            </DialogDescription>
+          </div>
+          <div className="flex gap-3 w-full mt-6">
+            <Button variant="outline" onClick={() => setIsCancelModalOpen(false)} className="w-full border-gray-300">Voltar</Button>
+            <Button variant="destructive" onClick={confirmCancel} className="w-full bg-red-500 hover:bg-red-600 text-white">Sim, cancelar</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

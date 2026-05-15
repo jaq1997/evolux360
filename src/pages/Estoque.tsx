@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Download, Upload, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Download, Upload, Eye, MoreHorizontal } from "lucide-react";
 import { AddProductModal } from "@/components/AddProductModal";
 import { EditProductModal } from "@/components/EditProductModal";
 import { DeleteProductModal } from "@/components/DeleteProductModal";
 import { ProductDetailsModal } from "@/components/ProductDetailsModal";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -31,6 +32,16 @@ const Estoque = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Produtos");
     XLSX.writeFile(workbook, "Estoque_Produtos.xlsx");
+  };
+
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      { sku: 'EX-001', name: 'Exemplo de Produto', stock_quantity: 10, price: 99.90, purchase_price: 50.00, category: 'Geral', supplier: 'Fornecedor Teste' }
+    ];
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+    XLSX.writeFile(workbook, "Template_Importacao_Produtos.xlsx");
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,9 +107,23 @@ const Estoque = () => {
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <h3 className="text-lg font-bold text-gray-900">Estoque ({filteredProducts.length})</h3>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={triggerFileInput}><Upload className="w-4 h-4 mr-2" /> Importar</Button>
-            <Button variant="outline" size="sm" onClick={handleExport}><Download className="w-4 h-4 mr-2" /> Exportar</Button>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm"><MoreHorizontal className="h-4 w-4 mr-2" /> Ações</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDownloadTemplate} className="cursor-pointer text-[#5932EA] focus:text-[#5932EA] font-medium">
+                  <Download className="w-4 h-4 mr-2" /> Baixar Template
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={triggerFileInput} className="cursor-pointer">
+                  <Upload className="w-4 h-4 mr-2" /> Importar Produtos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExport} className="cursor-pointer">
+                  <Download className="w-4 h-4 mr-2" /> Exportar Planilha
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button size="sm" onClick={() => setIsAddModalOpen(true)} className="bg-[#5932EA] hover:bg-[#4A28C7]"><Plus className="w-4 h-4 mr-2" /> Novo Produto</Button>
           </div>
         </div>
@@ -154,7 +179,15 @@ const Estoque = () => {
       
       {selectedProduct && (
         <>
-          <ProductDetailsModal isOpen={isDetailsModalOpen} onClose={() => { setIsDetailsModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} />
+          <ProductDetailsModal 
+            isOpen={isDetailsModalOpen} 
+            onClose={() => { setIsDetailsModalOpen(false); setSelectedProduct(null); }} 
+            product={selectedProduct} 
+            onEdit={() => {
+              setIsDetailsModalOpen(false);
+              setIsEditModalOpen(true);
+            }}
+          />
           <EditProductModal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} />
           <DeleteProductModal isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} />
         </>

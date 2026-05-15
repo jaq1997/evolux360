@@ -37,11 +37,11 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, on
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0 border-none outline-none [&>button]:text-white [&>button]:top-4 [&>button]:right-4 z-[9999]">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0 !border-none shadow-2xl outline-none [&>button]:text-white [&>button]:top-4 [&>button]:right-4 z-[9999]">
         <DialogHeader className="bg-[#5932EA] p-6 space-y-2 text-left shrink-0">
           <div className="flex items-center gap-4">
             <DialogTitle className="text-xl font-bold text-white">Pedido #{order.id}</DialogTitle>
-            <div className="bg-white rounded-full px-1"><StatusBadge status={order.status} /></div>
+            <div><StatusBadge status={order.status} /></div>
           </div>
           <DialogDescription className="text-purple-100/80">Detalhes completos da transação e entrega.</DialogDescription>
         </DialogHeader>

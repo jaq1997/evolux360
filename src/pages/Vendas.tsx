@@ -76,11 +76,20 @@ const Vendas = () => {
       };
       const statusLabel = statusLabels[status] || '';
 
+      const searchWords = lowerCaseSearchTerm.split(' ').filter(Boolean);
+      
+      const isEcommerceTerm = ['site', 'web', 'online'].some(k => lowerCaseSearchTerm.includes(k));
+      const isLojaTerm = ['fisica', 'balcao', 'presencial', 'física'].some(k => lowerCaseSearchTerm.includes(k));
+      const isWhatsappTerm = ['zap', 'whats'].some(k => lowerCaseSearchTerm.includes(k));
+
       const matchesSearch = searchTerm === '' ||
         order.id.toString().includes(lowerCaseSearchTerm) ||
         customerName.includes(lowerCaseSearchTerm) ||
         customerEmail.includes(lowerCaseSearchTerm) ||
         origin.includes(lowerCaseSearchTerm) ||
+        (isEcommerceTerm && origin.includes('e-commerce')) ||
+        (isLojaTerm && origin.includes('loja')) ||
+        (isWhatsappTerm && origin.includes('whatsapp')) ||
         (order.payment_method || '').toLowerCase().includes(lowerCaseSearchTerm) ||
         statusLabel.includes(lowerCaseSearchTerm);
 
