@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
 import { supabase } from "../integrations/supabase/client";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { AIInsightBar } from "@/components/AIInsightBar";
 
 const MetricCard = ({ title, value, subtext, icon: Icon, iconClass }: { title: string, value: string | number, subtext: string, icon: React.ElementType, iconClass?: string }) => (
     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle><Icon className={`h-4 w-4 text-muted-foreground ${iconClass}`} /></CardHeader><CardContent><div className="text-2xl font-bold">{value}</div><p className="text-xs text-muted-foreground">{subtext}</p></CardContent></Card>
@@ -106,6 +107,14 @@ const CRM = () => {
 
   return (
     <div className="main-content-min-height space-y-6">
+      {(() => {
+        const vip = customerInsights.filter(c => c.status === 'Cliente VIP').length;
+        const inactive = customerInsights.filter(c => c.status === 'Cliente Inativo').length;
+        let msg = `Você tem ${customers.length} cliente(s) na base.`;
+        if (inactive > 0) msg += ` ${inactive} estão inativos há mais de 90 dias — boa hora para uma campanha de reativação.`;
+        if (vip > 0) msg += ` ${vip} cliente(s) VIP: cuide bem deles!`;
+        return <AIInsightBar message={msg} />;
+      })()}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-2">
         <div className="flex-1 w-full md:max-w-md">
             <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input placeholder="Buscar por nome, email, telefone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-full"/></div>

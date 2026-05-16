@@ -8,10 +8,12 @@ import Estoque from "./Estoque";
 import Financeiro from "./Financeiro";
 import Vendas from "./Vendas";
 import Configuracoes from "./Configuracoes";
+import Relatorios from "./Relatorios";
 import { DollarSign, ShoppingCart } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from '@/components/StatusBadge';
 import { AppLayout } from "@/components/AppLayout";
+import { AIInsightBar } from "@/components/AIInsightBar";
 
 const StatCard = ({ title, value, icon: Icon }: { title: string, value: string, icon: React.ElementType }) => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
@@ -35,7 +37,7 @@ const DashboardCard = ({ title, children }: { title: string, children: React.Rea
 
 
 const DashboardHome = () => {
-  const { orders, dashboardStats, loading } = useData();
+  const { orders, products, dashboardStats, loading } = useData();
 
   const getCustomerName = (order: OrderWithCustomer): string => {
     if (order.customers?.name) return order.customers.name;
@@ -54,6 +56,18 @@ const DashboardHome = () => {
 
   return (
     <div className="space-y-6 main-content-min-height">
+      {(() => {
+        const pending = orders.filter(o => ['novo_pedido', 'a_separar'].includes(o.status)).length;
+        const lowStock = products.filter(p => (p.stock_quantity || 0) < 10).length;
+        let msg = "Tudo em dia! Seu negócio está operando sem pendências críticas.";
+        if (pending > 0 && lowStock > 0)
+          msg = `Você tem ${pending} pedido(s) aguardando processamento e ${lowStock} produto(s) com estoque crítico.`;
+        else if (pending > 0)
+          msg = `${pending} pedido(s) aguardam processamento. Verifique o Kanban abaixo.`;
+        else if (lowStock > 0)
+          msg = `${lowStock} produto(s) estão com estoque crítico. Considere repor o estoque.`;
+        return <AIInsightBar message={msg} />;
+      })()}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard title="Receita Total" value={`R$ ${dashboardStats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={DollarSign} />
         <StatCard title="Total de Pedidos" value={dashboardStats.totalOrders.toString()} icon={ShoppingCart} />
@@ -104,6 +118,7 @@ const Dashboard = () => {
         <Route path="crm" element={<CRM />} />
         <Route path="estoque" element={<Estoque />} />
         <Route path="financeiro" element={<Financeiro />} />
+        <Route path="relatorios" element={<Relatorios />} />
         <Route path="configuracoes" element={<Configuracoes />} />
       </Routes>
     </AppLayout>

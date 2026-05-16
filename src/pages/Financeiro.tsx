@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AIInsightBar } from "@/components/AIInsightBar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -104,6 +105,15 @@ const Financeiro = () => {
 
     return (
         <div className="space-y-6 main-content-min-height">
+            {(() => {
+              const saldo = totals.entradas - totals.saidas;
+              const hasPending = transactions.filter(t => t.status === 'Pendente').length;
+              let msg = saldo >= 0
+                ? `Saldo positivo de R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits:2})}. Fluxo de caixa saudável!`
+                : `Atenção: saldo negativo de R$ ${Math.abs(saldo).toLocaleString('pt-BR', {minimumFractionDigits:2})}. Revise suas saídas.`;
+              if (hasPending > 0) msg += ` ${hasPending} transação(s) pendente(s) de confirmação.`;
+              return <AIInsightBar message={msg} />;
+            })()}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="border-l-4 border-l-green-500 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
