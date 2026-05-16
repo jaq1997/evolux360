@@ -87,11 +87,50 @@ const Configuracoes = () => {
       if (session?.user) {
         setUserEmail(session.user.email || "");
         setNewEmail(session.user.email || "");
-        setUserName(session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "");
+        
+        // 1. Tenta buscar da tabela profiles primeiro
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        if (profile?.full_name) {
+          setUserName(profile.full_name);
+        } else {
+          setUserName(session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "");
+        }
       }
+
+      // 2. Tenta buscar todos os profiles para preencher a aba de Usuários
+      const { data: profilesData } = await supabase.from('profiles').select('*');
+      if (profilesData && profilesData.length > 0) {
+        const mappedUsers: UserData[] = profilesData.map((p, idx) => ({
+          id: p.id,
+          name: p.full_name || `Usuário ${idx + 1}`,
+          email: `${p.full_name?.toLowerCase().replace(/\s+/g, '') || 'usuario'}@evolux360.com`,
+          role: idx === 0 ? 'Administrador' : 'Vendedor',
+          status: 'Ativo'
+        }));
+        setUsers(mappedUsers);
+      }
+
       setIsLoading(false);
     };
+
     loadUserData();
+
+    // Listener para manter o estado atualizado em caso de mudanças na sessão
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setUserEmail(session.user.email || "");
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        if (profile?.full_name) {
+          setUserName(profile.full_name);
+        } else {
+          setUserName(session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "");
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // ── Salvar Nome (real Supabase) ──────────────────────────────────────────
@@ -105,14 +144,21 @@ const Configuracoes = () => {
       return;
     }
     setIsSavingProfile(true);
-    const { error } = await supabase.auth.updateUser({
+    const { data: userData, error: authErr } = await supabase.auth.updateUser({
       data: { full_name: userName.trim() }
     });
+
+    if (userData?.user?.id) {
+      await supabase.from('profiles').upsert({ id: userData.user.id, full_name: userName.trim() });
+    }
+
     setIsSavingProfile(false);
-    if (error) {
-      toast.error(`Erro ao salvar: ${error.message}`);
+    if (authErr) {
+      toast.error(`Erro ao salvar: ${authErr.message}`);
     } else {
       toast.success("Nome atualizado com sucesso!");
+      // Atualiza também na lista de usuários se estiver presente
+      setUsers(prev => prev.map(u => u.id === userData?.user?.id ? { ...u, name: userName.trim() } : u));
     }
   };
 
@@ -139,6 +185,7 @@ const Configuracoes = () => {
       toast.success("Link de confirmação enviado para o novo email!", {
         description: "Verifique sua caixa de entrada (e spam) para confirmar a alteração."
       });
+      setUserEmail(newEmail.trim());
     }
   };
 
@@ -221,7 +268,7 @@ const Configuracoes = () => {
   };
 
   // Funções de Usuário
-  const handleSaveUser = () => {
+  const handleSaveUser = async () => {
     if (!newUserName || !newUserEmail) {
       toast.error("Preencha todos os campos do usuário.");
       return;
@@ -229,9 +276,16 @@ const Configuracoes = () => {
 
     if (editingUser) {
       setUsers(users.map(u => u.id === editingUser.id ? { ...u, name: newUserName, email: newUserEmail, role: newUserRole } : u));
+      if (!isDemoMode) {
+        await supabase.from('profiles').update({ full_name: newUserName }).eq('id', editingUser.id);
+      }
       toast.success("Usuário atualizado com sucesso!");
     } else {
-      setUsers([...users, { id: Math.random().toString(), name: newUserName, email: newUserEmail, role: newUserRole, status: 'Ativo' }]);
+      const newId = Math.random().toString(36).substr(2, 9);
+      setUsers([...users, { id: newId, name: newUserName, email: newUserEmail, role: newUserRole, status: 'Ativo' }]);
+      if (!isDemoMode) {
+        await supabase.from('profiles').insert({ id: newId, full_name: newUserName });
+      }
       toast.success("Usuário convidado com sucesso!");
     }
     
@@ -246,8 +300,11 @@ const Configuracoes = () => {
     setIsUserModalOpen(true);
   };
 
-  const handleRemoveUser = (id: string) => {
+  const handleRemoveUser = async (id: string) => {
     setUsers(users.filter(u => u.id !== id));
+    if (!isDemoMode) {
+      await supabase.from('profiles').delete().eq('id', id);
+    }
     toast.success("Usuário removido.");
   };
 
