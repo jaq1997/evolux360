@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle2, Link as LinkIcon, Key, Check, Plus, Trash2, Plug, Edit, UserPlus, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Link as LinkIcon, Key, Check, Plus, Trash2, Plug, Edit, UserPlus, AlertTriangle, Loader2, Mail, Lock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -44,7 +44,16 @@ const Configuracoes = () => {
   // User State
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // Password State
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   // Integrações State
   const [integrations, setIntegrations] = useState<Integration[]>([]);
@@ -65,8 +74,9 @@ const Configuracoes = () => {
 
   useEffect(() => {
     const loadUserData = async () => {
-      const isDemoMode = localStorage.getItem('demo_mode') === 'true';
-      if (isDemoMode) {
+      const demo = localStorage.getItem('demo_mode') === 'true';
+      setIsDemoMode(demo);
+      if (demo) {
         setUserName("Admin Demo");
         setUserEmail("demo@evolux360.com");
         setIsLoading(false);
@@ -76,6 +86,7 @@ const Configuracoes = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserEmail(session.user.email || "");
+        setNewEmail(session.user.email || "");
         setUserName(session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "");
       }
       setIsLoading(false);
@@ -83,12 +94,78 @@ const Configuracoes = () => {
     loadUserData();
   }, []);
 
-  const handleSaveProfile = () => {
-    toast.success("Perfil atualizado com sucesso!");
+  // ── Salvar Nome (real Supabase) ──────────────────────────────────────────
+  const handleSaveProfile = async () => {
+    if (isDemoMode) {
+      toast.success("Perfil atualizado! (modo demo)");
+      return;
+    }
+    if (!userName.trim()) {
+      toast.error("O nome não pode ficar vazio.");
+      return;
+    }
+    setIsSavingProfile(true);
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: userName.trim() }
+    });
+    setIsSavingProfile(false);
+    if (error) {
+      toast.error(`Erro ao salvar: ${error.message}`);
+    } else {
+      toast.success("Nome atualizado com sucesso!");
+    }
   };
 
-  const handleSavePassword = () => {
-    toast.success("Senha atualizada com sucesso!");
+  // ── Alterar Email (real Supabase) ────────────────────────────────────────
+  const handleSaveEmail = async () => {
+    if (isDemoMode) {
+      toast.info("Alteração de email indisponível no modo demo.");
+      return;
+    }
+    if (!newEmail.trim() || !newEmail.includes('@')) {
+      toast.error("Digite um email válido.");
+      return;
+    }
+    if (newEmail === userEmail) {
+      toast.info("O email digitado é o mesmo que o atual.");
+      return;
+    }
+    setIsSavingEmail(true);
+    const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
+    setIsSavingEmail(false);
+    if (error) {
+      toast.error(`Erro ao alterar email: ${error.message}`);
+    } else {
+      toast.success("Link de confirmação enviado para o novo email!", {
+        description: "Verifique sua caixa de entrada (e spam) para confirmar a alteração."
+      });
+    }
+  };
+
+  // ── Alterar Senha (real Supabase) ────────────────────────────────────────
+  const handleSavePassword = async () => {
+    if (isDemoMode) {
+      toast.info("Alteração de senha indisponível no modo demo.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+    setIsSavingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setIsSavingPassword(false);
+    if (error) {
+      toast.error(`Erro ao alterar senha: ${error.message}`);
+    } else {
+      toast.success("Senha alterada com sucesso!");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
   };
 
   // Funções de Integração
@@ -204,50 +281,98 @@ const Configuracoes = () => {
 
         {/* ABA CONTA */}
         <TabsContent value="conta" className="pt-8 space-y-8">
+          {/* Perfil */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-[#5932EA] mb-1">Conta</h2>
-              <p className="text-sm text-gray-500">Atualize suas informações pessoais e credenciais de acesso.</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#5932EA]/10 flex items-center justify-center">
+                <User className="w-5 h-5 text-[#5932EA]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#5932EA] mb-0.5">Perfil</h2>
+                <p className="text-sm text-gray-500">Atualize seu nome de exibição.</p>
+              </div>
             </div>
             
             {!isLoading && (
               <div className="space-y-4 max-w-2xl">
                 <div className="space-y-2">
-                  <Label>Nome</Label>
+                  <Label htmlFor="profile-name">Nome</Label>
                   <div className="relative">
-                    <Input value={userName} onChange={(e) => setUserName(e.target.value)} className="pr-10" />
-                    <CheckCircle2 className="w-5 h-5 text-green-500 absolute right-3 top-1/2 -translate-y-1/2" />
+                    <Input id="profile-name" value={userName} onChange={(e) => setUserName(e.target.value)} className="pr-10" placeholder="Seu nome completo" />
+                    {userName.trim() && <CheckCircle2 className="w-5 h-5 text-green-500 absolute right-3 top-1/2 -translate-y-1/2" />}
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>E-mail</Label>
-                  <div className="relative">
-                    <Input value={userEmail} disabled className="bg-gray-50 text-gray-500" />
-                  </div>
-                  <p className="text-[10px] text-gray-400">O e-mail não pode ser alterado por aqui.</p>
                 </div>
                 
-                <Button className="bg-[#5932EA] hover:bg-[#4A28C7]" onClick={handleSaveProfile}>Salvar Alterações</Button>
+                <Button className="bg-[#5932EA] hover:bg-[#4A28C7]" onClick={handleSaveProfile} disabled={isSavingProfile}>
+                  {isSavingProfile ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Salvando...</> : 'Salvar Nome'}
+                </Button>
               </div>
             )}
           </div>
 
+          {/* Alterar Email */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-[#5932EA] mb-1">Alterar Senha</h2>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#5932EA] mb-0.5">Alterar E-mail</h2>
+                <p className="text-sm text-gray-500">Um link de confirmação será enviado para o novo endereço.</p>
+              </div>
+            </div>
+
+            {!isLoading && (
+              <div className="space-y-4 max-w-2xl">
+                <div className="space-y-2">
+                  <Label>Email atual</Label>
+                  <Input value={userEmail} disabled className="bg-gray-50 text-gray-500" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-email">Novo e-mail</Label>
+                  <Input id="new-email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="novo@email.com" />
+                </div>
+                <Button className="bg-[#5932EA] hover:bg-[#4A28C7]" onClick={handleSaveEmail} disabled={isSavingEmail || newEmail === userEmail}>
+                  {isSavingEmail ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : 'Alterar E-mail'}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Alterar Senha */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                <Lock className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#5932EA] mb-0.5">Alterar Senha</h2>
+                <p className="text-sm text-gray-500">Mínimo de 6 caracteres.</p>
+              </div>
             </div>
             
             <div className="space-y-4 max-w-2xl">
               <div className="space-y-2">
-                <Label>Nova Senha</Label>
-                <Input type="password" placeholder="Digite sua nova senha" />
+                <Label htmlFor="new-password">Nova Senha</Label>
+                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" minLength={6} />
               </div>
               <div className="space-y-2">
-                <Label>Confirme sua nova senha</Label>
-                <Input type="password" placeholder="Confirme sua nova senha" />
+                <Label htmlFor="confirm-password">Confirme a nova senha</Label>
+                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" />
+                {confirmPassword && newPassword !== confirmPassword && (
+                  <p className="text-xs text-red-500 font-medium">As senhas não coincidem.</p>
+                )}
+                {confirmPassword && newPassword === confirmPassword && newPassword.length >= 6 && (
+                  <p className="text-xs text-green-600 font-medium flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Senhas conferem.</p>
+                )}
               </div>
-              <Button className="bg-[#5932EA] hover:bg-[#4A28C7]" onClick={handleSavePassword}>Salvar Alterações</Button>
+              <Button 
+                className="bg-[#5932EA] hover:bg-[#4A28C7]" 
+                onClick={handleSavePassword} 
+                disabled={isSavingPassword || newPassword.length < 6 || newPassword !== confirmPassword}
+              >
+                {isSavingPassword ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Atualizando...</> : 'Alterar Senha'}
+              </Button>
             </div>
           </div>
         </TabsContent>
