@@ -37,19 +37,6 @@ O Evolux360 foi construído sobre uma arquitetura moderna para garantir rapidez 
 - **Empresas de Serviços**: Focadas em CRM e recorrência.
 - **Varejo Moderno**: Que busca centralização e inteligência de dados.
 
----
-
-### 🔐 Segurança e Escalabilidade
-Utilizamos **Row-Level Security (RLS)** e autenticação de nível bancário via Supabase, garantindo que os dados da sua empresa estejam sempre protegidos e acessíveis apenas a quem deve.
-
----
-
-### 🏁 Como começar (Demo Quickstart)
-
-1. **Clone** este repositório.
-2. **Instale** as dependências: `npm install`.
-3. **Configure** seu `.env` com as chaves do Supabase e Groq.
-4. **Execute**: `npm run dev`.
 
 ---
 
