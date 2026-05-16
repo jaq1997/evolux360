@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { 
-  BarChart3, ShoppingCart, Users, Package, DollarSign, Settings, LogOut, ChevronUp 
+  BarChart3, ShoppingCart, Users, Package, DollarSign, Settings, LogOut, ChevronUp, Sparkles
 } from "lucide-react";
 import { 
   SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, 
@@ -13,13 +13,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { EvoluxAIChat } from "@/components/EvoluxAIChat";
 
 const menuItems = [
   { title: "Dashboard", icon: BarChart3, url: "/dashboard" },
   { title: "Vendas", icon: ShoppingCart, url: "/dashboard/vendas" },
   { title: "Clientes", icon: Users, url: "/dashboard/crm" },
   { title: "Produtos", icon: Package, url: "/dashboard/estoque" },
-  { title: "Financeiro", icon: DollarSign, url: "/dashboard/financeiro" }
+  { title: "Financeiro", icon: DollarSign, url: "/dashboard/financeiro" },
+  { title: "Relatórios", icon: Sparkles, url: "/dashboard/relatorios" },
 ];
 
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -176,6 +178,8 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </ScrollArea>
         </div>
       </div>
+      {/* Evolux AI - Chat Flutuante Global */}
+      <EvoluxAIChat />
     </SidebarProvider>
   );
 };

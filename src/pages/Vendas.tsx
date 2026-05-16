@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { OrderDetailsModal } from '@/components/OrderDetailsModal';
 import { AddNewOrderModal } from '@/components/AddNewOrderModal';
+import { AIInsightBar } from "@/components/AIInsightBar";
 
 const Vendas = () => {
   const { orders, loading } = useData();
@@ -168,6 +169,15 @@ const Vendas = () => {
   return (
     <>
       <div className="space-y-6">
+        {/* Evolux AI Insight */}
+        {(() => {
+          const pending = orders.filter(o => ['novo_pedido', 'a_separar'].includes(o.status)).length;
+          const today = orders.filter(o => new Date(o.created_at!).toDateString() === new Date().toDateString()).length;
+          let msg = `Você tem ${orders.length} pedido(s) no total.`;
+          if (pending > 0) msg = `${pending} pedido(s) ainda precisam ser processados. Confira os status abaixo.`;
+          if (today > 0) msg += ` ${today} novo(s) pedido(s) chegaram hoje.`;
+          return <AIInsightBar message={msg} />;
+        })()}
         {/* Seção de Filtros */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
           <div className="flex items-center space-x-2">

@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { AIInsightBar } from "@/components/AIInsightBar";
 
 const Estoque = () => {
   const { products, loading, fetchAllData } = useData(); 
@@ -103,6 +104,14 @@ const Estoque = () => {
 
   return (
     <div className="space-y-6 main-content-min-height">
+      {(() => {
+        const critical = products.filter(p => (p.stock_quantity || 0) === 0).length;
+        const low = products.filter(p => (p.stock_quantity || 0) > 0 && (p.stock_quantity || 0) <= 10).length;
+        let msg = `Você tem ${products.length} produto(s) cadastrados. Estoque saudável!`;
+        if (critical > 0) msg = `⚠️ ${critical} produto(s) esgotado(s) e ${low} com estoque baixo. Reponha antes de perder vendas.`;
+        else if (low > 0) msg = `${low} produto(s) estão com estoque baixo. Fique de olho para não faltar.`;
+        return <AIInsightBar message={msg} />;
+      })()}
       <input type="file" accept=".xlsx, .xls" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
 
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
