@@ -1,7 +1,5 @@
 # Evolux360 — Gestão Empresarial 360° com Inteligência Artificial
 
-![Evolux360 Showcase](./public/product-showcase.png)
-
 ## O Futuro da Gestão Administrativa e Comercial
 
 O **Evolux360** não é apenas um ERP; é o centro de comando para negócios que buscam escala, controle absoluto e decisões baseadas em dados reais. Desenvolvido com tecnologia de ponta, o sistema centraliza todas as operações críticas — do estoque à venda final — em uma interface intuitiva e de altíssima performance.
