@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings, Share2, FileText, Users, ArrowRight, Sparkles, DollarSign, ShoppingCart, Zap, LayoutDashboard, TrendingUp, Plus, Filter, Search, ArrowUp, ArrowDown } from "lucide-react";
+import { Settings, Share2, FileText, Users, ArrowRight, Sparkles, DollarSign, ShoppingCart, Zap, LayoutDashboard, TrendingUp, Plus, Filter, Search, ArrowUp, ArrowDown, Database, LineChart, Package, BrainCircuit, Activity, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CustomCursor } from "@/components/CustomCursor";
@@ -19,6 +19,35 @@ const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, tit
     </div>
     <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
     <p className="text-gray-600 leading-relaxed">{description}</p>
+  </motion.div>
+);
+
+const ProductCard = ({ icon: Icon, title, description, delay, isPrimary = false }: { icon: any, title: string, description: string, delay: number, isPrimary?: boolean }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.3, delay }}
+    whileHover={{ y: -5 }}
+    className={`group p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border h-full flex flex-col ${
+      isPrimary 
+        ? 'bg-gradient-to-br from-[#5932EA] to-[#4A28C7] border-purple-500/50 text-white' 
+        : 'bg-white/60 backdrop-blur-md border-white/20 text-gray-900'
+    }`}
+  >
+    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300 ${
+      isPrimary 
+        ? 'bg-white/10 group-hover:bg-white/20' 
+        : 'bg-[#5932EA]/10 group-hover:bg-[#5932EA]'
+    }`}>
+      <Icon className={`w-8 h-8 transition-colors duration-300 ${
+        isPrimary 
+          ? 'text-white' 
+          : 'text-[#5932EA] group-hover:text-white'
+      }`} />
+    </div>
+    <h3 className={`text-2xl font-black mb-3 ${isPrimary ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+    <p className={`leading-relaxed font-medium ${isPrimary ? 'text-purple-100' : 'text-gray-600'}`}>{description}</p>
   </motion.div>
 );
 
@@ -661,6 +690,19 @@ const MockDashboard = () => {
 
 const Index = () => {
   const navigate = useNavigate();
+  const [isManual, setIsManual] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    setIsManual(true);
+    if (scrollContainerRef.current) {
+      const scrollAmount = window.innerWidth > 768 ? 382 : 324; // Card width + gap
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
@@ -723,6 +765,97 @@ const Index = () => {
               <div className="relative mx-auto bg-gray-900 rounded-b-xl h-[16px] md:h-[24px] w-[120px] md:w-[200px]"></div>
               <div className="relative mx-auto bg-gray-800 rounded-b-xl h-[8px] md:h-[12px] w-[180px] md:w-[350px]"></div>
             </motion.div>
+          </div>
+        </section>
+
+        {/* Nossas Soluções - Ecossistema Evolux360 */}
+        <section className="py-20 md:py-32 px-4 bg-gray-50/50 relative">
+          <div className="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none z-0">
+            <div className="absolute top-[20%] left-[-10%] w-[50%] h-[50%] bg-[#5932EA]/5 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#7C3AED]/5 rounded-full blur-[120px]" />
+          </div>
+          
+          <div className="container mx-auto relative z-10">
+            <div className="text-center mb-16 md:mb-20">
+              <span className="text-[#5932EA] font-black tracking-widest uppercase text-sm mb-4 block">Ecossistema Evolux360</span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Nossas Soluções
+              </h2>
+              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                Uma suíte completa e integrada de produtos desenvolvida para escalar e gerenciar todas as áreas do seu negócio de forma inteligente.
+              </p>
+            </div>
+
+            <div className="relative w-full overflow-hidden flex py-4 mt-8 group">
+              {/* Overlay de gradiente nas bordas para suavizar a entrada/saída */}
+              <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-gray-50/90 to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-gray-50/90 to-transparent z-10 pointer-events-none" />
+              
+              {/* Botões de navegação */}
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => scroll('left')} className="w-12 h-12 bg-white rounded-full shadow-xl border border-gray-100 flex items-center justify-center text-gray-900 hover:text-[#5932EA] hover:scale-110 transition-all">
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => scroll('right')} className="w-12 h-12 bg-white rounded-full shadow-xl border border-gray-100 flex items-center justify-center text-gray-900 hover:text-[#5932EA] hover:scale-110 transition-all">
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div 
+                ref={scrollContainerRef}
+                className={`flex w-full items-stretch gap-6 md:gap-8 px-3 md:px-4 ${isManual ? 'overflow-x-auto custom-scrollbar snap-x snap-mandatory pb-4' : 'overflow-hidden'}`}
+              >
+                <div className={`flex items-stretch gap-6 md:gap-8 ${isManual ? 'w-max' : 'animate-marquee hover:animation-play-state-paused w-max'}`}>
+                  {[...Array(isManual ? 1 : 2)].map((_, i) => (
+                    <div key={i} className="flex gap-6 md:gap-8 shrink-0">
+                      <div className="w-[300px] md:w-[350px] snap-center">
+                        <ProductCard 
+                          icon={Database} 
+                          title="Evolux Core" 
+                          description="Gestão centralizada de dados, regras de negócio e integrações robustas."
+                          delay={0}
+                        />
+                      </div>
+                      <div className="w-[300px] md:w-[350px] snap-center">
+                        <ProductCard 
+                          icon={BrainCircuit} 
+                          title="Evolux AI" 
+                          description="Inteligência Artificial que prevê tendências e sugere ações automáticas."
+                          delay={0}
+                          isPrimary={true}
+                        />
+                      </div>
+                      <div className="w-[300px] md:w-[350px] snap-center">
+                        <ProductCard 
+                          icon={TrendingUp} 
+                          title="Evolux Comercial" 
+                          description="CRM e pipeline de vendas. Controle de clientes e acompanhamento de metas."
+                          delay={0}
+                        />
+                      </div>
+                      <div className="w-[300px] md:w-[350px] snap-center">
+                        <ProductCard 
+                          icon={Package} 
+                          title="Evolux Catálogo" 
+                          description="Gestão de estoque, categorias e variantes. Controle em tempo real."
+                          delay={0}
+                        />
+                      </div>
+                      <div className="w-[300px] md:w-[350px] snap-center">
+                        <ProductCard 
+                          icon={LineChart} 
+                          title="Evolux Vision" 
+                          description="Dashboards avançados e relatórios analíticos em tempo real (BI)."
+                          delay={0}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
