@@ -18,6 +18,16 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    // Em desenvolvimento local, habilita o modo demo e permite qualquer credencial
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || import.meta.env.MODE === 'development');
+    if (isLocal) {
+      localStorage.setItem('demo_mode', 'true');
+      toast.success('Login em modo local (demo) habilitado.');
+      navigate('/dashboard');
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast.error("E-mail ou senha inválidos.");

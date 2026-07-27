@@ -155,9 +155,6 @@ export const Header = () => {
             <Link to="/features/automacao-inteligente" className="py-2 text-lg text-gray-700 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
               Funcionalidades
             </Link>
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="py-2 text-lg text-gray-700 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
-              Fale Conosco
-            </a>
             <div className="border-t border-gray-200 pt-4 flex flex-col space-y-3">
               {(session || isDemoMode) ? (
                  <>

@@ -22,34 +22,45 @@ const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, tit
   </motion.div>
 );
 
-const ProductCard = ({ icon: Icon, title, description, delay, isPrimary = false }: { icon: any, title: string, description: string, delay: number, isPrimary?: boolean }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.3, delay }}
-    whileHover={{ y: -5 }}
-    className={`group p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border h-full flex flex-col ${
-      isPrimary 
-        ? 'bg-gradient-to-br from-[#5932EA] to-[#4A28C7] border-purple-500/50 text-white' 
-        : 'bg-white/60 backdrop-blur-md border-white/20 text-gray-900'
-    }`}
-  >
-    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300 ${
-      isPrimary 
-        ? 'bg-white/10 group-hover:bg-white/20' 
-        : 'bg-[#5932EA]/10 group-hover:bg-[#5932EA]'
-    }`}>
-      <Icon className={`w-8 h-8 transition-colors duration-300 ${
+const ProductCard = ({ icon: Icon, title, description, delay, isPrimary = false, href }: { icon: any, title: string, description: string, delay: number, isPrimary?: boolean, href?: string }) => {
+  const card = (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3, delay }}
+      whileHover={{ y: -5 }}
+      className={`group p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border h-full flex flex-col ${
         isPrimary 
-          ? 'text-white' 
-          : 'text-[#5932EA] group-hover:text-white'
-      }`} />
-    </div>
-    <h3 className={`text-2xl font-black mb-3 ${isPrimary ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
-    <p className={`leading-relaxed font-medium ${isPrimary ? 'text-purple-100' : 'text-gray-600'}`}>{description}</p>
-  </motion.div>
-);
+          ? 'bg-gradient-to-br from-[#5932EA] to-[#4A28C7] border-purple-500/50 text-white' 
+          : 'bg-white/60 backdrop-blur-md border-white/20 text-gray-900'
+      }`}
+    >
+      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300 ${
+        isPrimary 
+          ? 'bg-white/10 group-hover:bg-white/20' 
+          : 'bg-[#5932EA]/10 group-hover:bg-[#5932EA]'
+      }`}>
+        <Icon className={`w-8 h-8 transition-colors duration-300 ${
+          isPrimary 
+            ? 'text-white' 
+            : 'text-[#5932EA] group-hover:text-white'
+        }`} />
+      </div>
+      <h3 className={`text-2xl font-black mb-3 ${isPrimary ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+      <p className={`leading-relaxed font-medium ${isPrimary ? 'text-purple-100' : 'text-gray-600'}`}>{description}</p>
+    </motion.div>
+  );
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full cursor-pointer">
+        {card}
+      </a>
+    );
+  }
+  return card;
+};
 
 const StatCardMock = ({ title, value, icon: Icon }: { title: string, value: string, icon: any }) => (
   <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col">
@@ -812,27 +823,12 @@ const Index = () => {
                     <div key={i} className="flex gap-6 md:gap-8 shrink-0">
                       <div className="w-[300px] md:w-[350px] snap-center">
                         <ProductCard 
-                          icon={Database} 
-                          title="Evolux Core" 
-                          description="Gestão centralizada de dados, regras de negócio e integrações robustas."
-                          delay={0}
-                        />
-                      </div>
-                      <div className="w-[300px] md:w-[350px] snap-center">
-                        <ProductCard 
-                          icon={BrainCircuit} 
-                          title="Evolux AI" 
-                          description="Inteligência Artificial que prevê tendências e sugere ações automáticas."
-                          delay={0}
-                          isPrimary={true}
-                        />
-                      </div>
-                      <div className="w-[300px] md:w-[350px] snap-center">
-                        <ProductCard 
                           icon={TrendingUp} 
-                          title="Evolux Comercial" 
-                          description="CRM e pipeline de vendas. Controle de clientes e acompanhamento de metas."
+                          title="VendeAI" 
+                          description="A Ponta de Lança do Ecossistema Evolux360. Solução oficial de automação de vendas no WhatsApp."
                           delay={0}
+                          href="https://vendeai-lp.vercel.app/"
+                          isPrimary={true}
                         />
                       </div>
                       <div className="w-[300px] md:w-[350px] snap-center">
@@ -845,9 +841,25 @@ const Index = () => {
                       </div>
                       <div className="w-[300px] md:w-[350px] snap-center">
                         <ProductCard 
+                          icon={Database} 
+                          title="Evolux Core" 
+                          description="Gestão centralizada de dados, regras de negócio e integrações robustas."
+                          delay={0}
+                        />
+                      </div>
+                      <div className="w-[300px] md:w-[350px] snap-center">
+                        <ProductCard 
                           icon={LineChart} 
                           title="Evolux Vision" 
                           description="Dashboards avançados e relatórios analíticos em tempo real (BI)."
+                          delay={0}
+                        />
+                      </div>
+                      <div className="w-[300px] md:w-[350px] snap-center">
+                        <ProductCard 
+                          icon={BrainCircuit} 
+                          title="Evolux AI" 
+                          description="Inteligência Artificial que prevê tendências e sugere ações automáticas."
                           delay={0}
                         />
                       </div>
