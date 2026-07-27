@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Database, BrainCircuit, TrendingUp, Package, LineChart, Zap, Smartphone, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, Sparkles, Database, BrainCircuit, TrendingUp, Package, LineChart, Zap, Smartphone, ShieldCheck, ChevronDown, ChevronUp, DollarSign, Layers, ScanLine, FileText, BarChart3, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CustomCursor } from "@/components/CustomCursor";
 import { useState } from "react";
@@ -17,8 +17,8 @@ const SolutionCard = ({
   paragraphs, 
   features,
   badge,
-  targetAudience,
   href,
+  buttonText,
   delay
 }: { 
   icon: any; 
@@ -27,12 +27,12 @@ const SolutionCard = ({
   paragraphs: string[]; 
   features?: FeatureItem[];
   badge?: string;
-  targetAudience?: string;
   href?: string;
+  buttonText?: string;
   delay: number; 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const hasExtraContent = (features && features.length > 0) || Boolean(targetAudience);
+  const hasExtraContent = features && features.length > 0;
 
   return (
     <motion.div
@@ -100,13 +100,6 @@ const SolutionCard = ({
                   })}
                 </div>
               )}
-
-              {/* Target Audience */}
-              {targetAudience && (
-                <p className="text-xs font-medium mb-5 text-slate-500">
-                  <span className="font-bold uppercase tracking-wider text-xs text-slate-700">Público-alvo:</span> {targetAudience}
-                </p>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -116,13 +109,13 @@ const SolutionCard = ({
           {href ? (
             <a href={href} target="_blank" rel="noopener noreferrer" className="inline-block">
               <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-12 px-7 rounded-xl shadow-md shadow-purple-100 group">
-                Conhecer VendeAI agora <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {buttonText || "Conhecer VendeAI agora"} <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </a>
           ) : (
             <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer" className="inline-block">
-              <Button variant="outline" className="h-12 px-6 rounded-xl font-bold border-slate-300 hover:bg-purple-50 hover:border-purple-200 text-slate-800">
-                Saiba mais <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-12 px-7 rounded-xl shadow-md shadow-purple-100 group">
+                {buttonText || "Saiba mais"} <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </a>
           )}
@@ -183,14 +176,14 @@ const Products = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
             
-            {/* VendeAI */}
+            {/* 1. VendeAI - NÃO MEXER */}
             <SolutionCard 
               icon={TrendingUp}
               title="VendeAI"
               subtitle="A Ponta de Lança do Ecossistema Evolux360"
               paragraphs={[
                 "Desenvolvido para eliminar a complexidade da tecnologia e colocar mais lucro no caixa do pequeno empresário, o VendeAI é a nossa solução oficial de automação de vendas no WhatsApp.",
-                "Ele atua no atendimento, tira dúvidas sobre produtos e fecha vendas via Pix no piloto automático 24/7."
+                "Ele atua como o braço direito comercial de lojas de varejo, salões de beleza e prestadores de serviços, garantindo que nenhum cliente fique sem resposta e nenhuma venda seja perdida por demora no atendimento."
               ]}
               badge="Automação WhatsApp"
               features={[
@@ -210,52 +203,132 @@ const Products = () => {
                   description: "Teste no seu negócio sem riscos."
                 }
               ]}
-              targetAudience="Lojas de varejo, e-commerce, salões de beleza e prestadores de serviços."
               href="https://vendeai-lp.vercel.app/"
+              buttonText="Conhecer VendeAI agora"
               delay={0.1}
             />
 
-            {/* Evolux Catálogo */}
+            {/* 2. Evolux Catálogo */}
             <SolutionCard 
               icon={Package}
               title="Evolux Catálogo"
-              subtitle="Sua vitrine digital direta no WhatsApp"
+              subtitle="Sua Estrutura Profissional sem Aluguel"
               paragraphs={[
-                "Uma loja online leve e rápida para apresentar seus produtos com fotos e preços, direcionando o cliente diretamente para o seu WhatsApp."
+                "Desenvolvido para quem quer apresentar seu trabalho de forma rápida e profissional, o Evolux Catálogo é a alternativa definitiva para quem não quer mais depender de sites lentos ou pagar mensalidades para plataformas de terceiros.",
+                "Ele organiza seus produtos ou serviços e facilita a escolha do cliente, enviando o pedido ou a solicitação de orçamento pronta diretamente para o seu WhatsApp."
               ]}
+              badge="Vitrine de Produtos e Serviços"
+              features={[
+                {
+                  icon: DollarSign,
+                  title: "Pagamento Único",
+                  description: "Você paga apenas uma vez pela montagem. Sem mensalidade de plataforma."
+                },
+                {
+                  icon: Zap,
+                  title: "Velocidade Máxima",
+                  description: "Site ultra-leve que abre instantaneamente, ideal para converter leads vindos de anúncios."
+                },
+                {
+                  icon: Smartphone,
+                  title: "Fechamento Organizado",
+                  description: "O cliente escolhe o que deseja e fecha a compra direto no seu WhatsApp ou no checkout que você já usa."
+                }
+              ]}
+              buttonText="Conhecer Evolux Catálogo agora"
               delay={0.2}
             />
 
-            {/* Evolux Core */}
+            {/* 3. Evolux Core */}
             <SolutionCard 
               icon={Database}
               title="Evolux Core"
-              subtitle="A base operacional do seu negócio"
+              subtitle="Onde a Conversa vira Cliente Fiel"
               paragraphs={[
-                "Centralize CRM, controle de estoque e pipeline de vendas em uma plataforma integrada, criada para quem quer operar com controle total."
+                "Desenvolvido para o empresário que quer parar de esquecer quem são seus clientes, o Evolux Core une a organização do estoque e financeiro com um CRM de Atitude.",
+                "Ele organiza cada lead que chega pelo WhatsApp e transforma em um histórico real, permitindo que você saiba exatamente quem parou de comprar e quem é o seu melhor cliente."
               ]}
+              badge="Gestão e CRM"
+              features={[
+                {
+                  icon: Database,
+                  title: "CRM Inteligente",
+                  description: "Saiba o nome, o que comprou e a última vez que apareceu. Nunca mais perca o contato de um cliente interessado."
+                },
+                {
+                  icon: Package,
+                  title: "Estoque e Financeiro",
+                  description: "Controle suas mercadorias e veja seu lucro real na tela, tudo integrado ao seu movimento de vendas."
+                },
+                {
+                  icon: Layers,
+                  title: "Painel Visual de Pedidos",
+                  description: "Um painel visual simples para você arrastar seus pedidos do 'Novo' até a 'Entrega', sem confusão e sem erros."
+                }
+              ]}
+              buttonText="Conhecer Evolux Core agora"
               delay={0.3}
             />
 
-            {/* Evolux Vision */}
+            {/* 4. Evolux Vision */}
             <SolutionCard 
               icon={LineChart}
               title="Evolux Vision"
-              subtitle="Leitura inteligente de documentos e notas"
+              subtitle="O Fim da Digitação Manual de Notas"
               paragraphs={[
-                "Visão computacional que lê notas fiscais, contratos e boletos, atualizando o estoque e o CRM automaticamente."
+                "Desenvolvido para quem perde tempo preenchendo o sistema manualmente, o Evolux Vision é a tecnologia que \"lê\" seus documentos por você.",
+                "Basta uma foto ou o PDF da Nota Fiscal para que o sistema identifique os produtos e atualize seu estoque e financeiro automaticamente."
               ]}
+              badge="Entrada de Documentos"
+              features={[
+                {
+                  icon: ScanLine,
+                  title: "Leitura por Foto",
+                  description: "Tire foto da nota do fornecedor e a IA faz o trabalho pesado."
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Zero Erro Humano",
+                  description: "Elimine erros de digitação de preços, códigos e quantidades."
+                },
+                {
+                  icon: Zap,
+                  title: "Ganho de Tempo",
+                  description: "O que levava horas de digitação agora é feito em segundos."
+                }
+              ]}
+              buttonText="Conhecer Evolux Vision agora"
               delay={0.4}
             />
 
-            {/* Evolux AI */}
+            {/* 5. Evolux AI */}
             <SolutionCard 
               icon={BrainCircuit}
               title="Evolux AI"
-              subtitle="Assistente de IA integrado à sua operação"
+              subtitle="O Estrategista que Conhece seu Negócio"
               paragraphs={[
-                "Assistente inteligente treinado nos dados do seu negócio para responder dúvidas gerenciais e orientar tomadas de decisão."
+                "Desenvolvido para quem quer vender mais usando as informações que já tem, o Evolux AI funciona como um consultor de marketing dentro da sua empresa.",
+                "Ele analisa os dados reais do seu negócio (vendas, estoque, clientes) e sugere as melhores ideias de promoções e campanhas para atrair clientes na hora certa."
               ]}
+              badge="Inteligência de Vendas"
+              features={[
+                {
+                  icon: Sparkles,
+                  title: "Ideias de Promoção",
+                  description: "A IA te avisa qual produto está parado e sugere como vendê-lo mais rápido."
+                },
+                {
+                  icon: Database,
+                  title: "Perfil do Cliente",
+                  description: "Saiba quem são seus melhores clientes e o que eles mais gostam de comprar."
+                },
+                {
+                  icon: BarChart3,
+                  title: "Relatórios Simples",
+                  description: "Receba o resumo das suas vendas direto no WhatsApp, de forma clara e rápida."
+                }
+              ]}
+              buttonText="Conhecer Evolux AI agora"
               delay={0.5}
             />
 
