@@ -14,9 +14,9 @@ const SolutionCard = ({
   icon: Icon, 
   title, 
   subtitle, 
-  paragraphs, 
+  shortParagraph,
+  fullParagraphs, 
   features,
-  badge,
   href,
   buttonText,
   delay
@@ -24,9 +24,9 @@ const SolutionCard = ({
   icon: any; 
   title: string; 
   subtitle: string; 
-  paragraphs: string[]; 
+  shortParagraph: string; 
+  fullParagraphs: string[]; 
   features?: FeatureItem[];
-  badge?: string;
   href?: string;
   buttonText?: string;
   delay: number; 
@@ -35,107 +35,101 @@ const SolutionCard = ({
   const hasExtraContent = features && features.length > 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
-      className="group relative p-6 md:p-8 rounded-3xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-[#5932EA] hover:shadow-xl hover:shadow-purple-500/10 text-slate-900 transition-all duration-300 flex flex-col md:flex-row gap-6 md:gap-8 items-start w-full overflow-hidden"
+    <div
+      className={`group relative p-5 md:p-6 rounded-2xl transition-all duration-200 flex flex-col justify-between h-full w-full overflow-hidden ${
+        isExpanded 
+          ? "md:col-span-2 lg:col-span-3 bg-[#0F0728] border border-[#5932EA]/40 text-white shadow-xl shadow-purple-950/20" 
+          : "bg-white shadow-sm hover:shadow-lg border border-slate-200/80 hover:border-[#5932EA] hover:shadow-purple-500/5 text-slate-900"
+      }`}
     >
-      <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none">
-        <Sparkles className="w-20 h-20 text-[#5932EA]" />
-      </div>
-      
-      <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-2xl bg-[#5932EA]/10 text-[#5932EA] flex items-center justify-center transition-transform duration-300 group-hover:scale-105 mt-1">
-        <Icon className="w-8 h-8 md:w-10 md:h-10" />
-      </div>
-      
-      <div className="flex-1 z-10 w-full">
-        <div className="flex flex-wrap items-center gap-3 mb-2">
-          <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">{title}</h3>
-          {badge && (
-            <span className="bg-purple-100 text-[#5932EA] font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wider border border-purple-200">
-              {badge}
-            </span>
-          )}
+      <div>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all shrink-0 ${
+            isExpanded 
+              ? "bg-[#5932EA] text-white shadow-md shadow-purple-500/20" 
+              : "bg-[#5932EA]/10 text-[#5932EA] group-hover:scale-105"
+          }`}>
+            <Icon className="w-5 h-5" />
+          </div>
         </div>
+
+        <h3 className={`text-xl font-black tracking-tight mb-1 ${isExpanded ? "text-white" : "text-slate-900"}`}>{title}</h3>
         
-        <p className="font-bold mb-3 text-base md:text-lg text-[#5932EA] tracking-tight">
+        <p className={`font-bold mb-3 text-xs md:text-sm tracking-tight ${isExpanded ? "text-purple-300" : "text-[#5932EA]"}`}>
           {subtitle}
         </p>
         
-        <div className="space-y-3 mb-5 font-medium leading-relaxed text-sm md:text-base text-slate-600">
-          {paragraphs.map((p, idx) => (
-            <p key={idx}>{p}</p>
-          ))}
-        </div>
-
-        {/* Expandable Accordion Section */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden"
-            >
-              {/* Recurso Cards */}
-              {features && features.length > 0 && (
-                <div className="my-5 pt-4 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {features.map((item, idx) => {
-                    const FIcon = item.icon;
-                    return (
-                      <div 
-                        key={idx} 
-                        className="p-3.5 rounded-xl border bg-white border-slate-200/60 group-hover:border-purple-200 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <FIcon className="w-4 h-4 text-[#5932EA]" />
-                          <h5 className="font-bold text-xs text-slate-900">{item.title}</h5>
-                        </div>
-                        <p className="text-[11px] font-medium leading-tight text-slate-500">{item.description}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        {/* Action Row - Sempre Visível */}
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          {href ? (
-            <a href={href} target="_blank" rel="noopener noreferrer" className="inline-block">
-              <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-12 px-7 rounded-xl shadow-md shadow-purple-100 group">
-                {buttonText || "Conhecer VendeAI agora"} <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </a>
+        <div className={`space-y-2.5 mb-4 font-medium leading-relaxed text-xs md:text-sm ${isExpanded ? "text-slate-200" : "text-slate-600"}`}>
+          {isExpanded ? (
+            fullParagraphs.map((p, idx) => (
+              <p key={idx}>{p}</p>
+            ))
           ) : (
-            <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer" className="inline-block">
-              <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-12 px-7 rounded-xl shadow-md shadow-purple-100 group">
-                {buttonText || "Saiba mais"} <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </a>
-          )}
-
-          {hasExtraContent && (
-            <Button
-              variant="ghost"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-[#5932EA] hover:bg-purple-50 font-bold h-12 px-4 rounded-xl text-sm flex items-center gap-1.5"
-            >
-              {isExpanded ? (
-                <>Menos detalhes <ChevronUp className="w-4 h-4" /></>
-              ) : (
-                <>Ver detalhes <ChevronDown className="w-4 h-4" /></>
-              )}
-            </Button>
+            <p>{shortParagraph}</p>
           )}
         </div>
+
+        {/* Expandable Features Section - Instant Display & 3 Columns */}
+        {isExpanded && features && features.length > 0 && (
+          <div className="my-4 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+            {features.map((item, idx) => {
+              const FIcon = item.icon;
+              return (
+                <div 
+                  key={idx} 
+                  className="p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm hover:border-purple-400/40 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#5932EA] text-white flex items-center justify-center shrink-0">
+                        <FIcon className="w-4 h-4" />
+                      </div>
+                      <h5 className="font-bold text-xs md:text-sm text-white">{item.title}</h5>
+                    </div>
+                    <p className="text-xs font-medium leading-relaxed text-purple-200/80">{item.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </motion.div>
+      
+      {/* Action Row - Botão Primário Oficial #5932EA + Botão Terciário (Texto sem fundo) */}
+      <div className={`flex flex-wrap items-center justify-between gap-3 pt-3 mt-2 border-t ${isExpanded ? "border-white/10" : "border-slate-100"}`}>
+        {href ? (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="inline-block">
+            <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-9 px-4 rounded-lg shadow-sm text-xs group">
+              {buttonText || "Conhecer VendeAI agora"} <ArrowRight className="ml-1 w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </a>
+        ) : (
+          <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer" className="inline-block">
+            <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-9 px-4 rounded-lg shadow-sm text-xs group">
+              {buttonText || "Saiba mais"} <ArrowRight className="ml-1 w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </a>
+        )}
+
+        {hasExtraContent && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`font-semibold text-xs inline-flex items-center gap-1 transition-colors py-1.5 px-1 ${
+              isExpanded 
+                ? "text-purple-300 hover:text-white" 
+                : "text-[#5932EA] hover:text-[#4A28C7]"
+            }`}
+          >
+            {isExpanded ? (
+              <>Menos detalhes <ChevronUp className="w-3.5 h-3.5" /></>
+            ) : (
+              <>Ver detalhes <ChevronDown className="w-3.5 h-3.5" /></>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -150,42 +144,39 @@ const Products = () => {
         <div className="absolute bottom-[5%] left-[-10%] w-[30%] h-[30%] bg-[#7C3AED]/5 rounded-full blur-[100px]" />
       </div>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4 text-center">
+      {/* Hero Section Compacto */}
+      <section className="pt-20 pb-6 px-4 text-center">
         <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <span className="bg-[#5932EA]/10 text-[#5932EA] px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4 inline-block">
-              Esteira de Produtos
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight leading-tight">
               Soluções Inteligentes para <span className="bg-gradient-to-r from-[#5932EA] to-[#7C3AED] bg-clip-text text-transparent">Pequenos Negócios</span>
             </h1>
-            <p className="text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
+            <p className="text-sm md:text-base text-slate-500 max-w-xl mx-auto leading-relaxed font-medium">
               Conheça os módulos do ecossistema Evolux360 projetados para acelerar suas vendas e transformar a gestão da sua empresa.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Products List Section */}
-      <section className="py-12 pb-24 px-4 relative">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
+      {/* Products List Section - 3 Columns Grid */}
+      <section className="py-4 pb-20 px-4 relative">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
             
-            {/* 1. VendeAI - NÃO MEXER */}
+            {/* 1. VendeAI */}
             <SolutionCard 
               icon={TrendingUp}
               title="VendeAI"
               subtitle="A Ponta de Lança do Ecossistema Evolux360"
-              paragraphs={[
+              shortParagraph="Sua solução oficial de automação de vendas no WhatsApp. Atende 24/7, responde clientes instantaneamente e fecha vendas sem deixar ninguém esperando."
+              fullParagraphs={[
                 "Desenvolvido para eliminar a complexidade da tecnologia e colocar mais lucro no caixa do pequeno empresário, o VendeAI é a nossa solução oficial de automação de vendas no WhatsApp.",
                 "Ele atua como o braço direito comercial de lojas de varejo, salões de beleza e prestadores de serviços, garantindo que nenhum cliente fique sem resposta e nenhuma venda seja perdida por demora no atendimento."
               ]}
-              badge="Automação WhatsApp"
               features={[
                 {
                   icon: Zap,
@@ -213,11 +204,11 @@ const Products = () => {
               icon={Package}
               title="Evolux Catálogo"
               subtitle="Sua Estrutura Profissional sem Aluguel"
-              paragraphs={[
+              shortParagraph="Sua vitrine profissional de produtos e serviços sem aluguel de plataforma, com fechamento rápido direto no seu WhatsApp."
+              fullParagraphs={[
                 "Desenvolvido para quem quer apresentar seu trabalho de forma rápida e profissional, o Evolux Catálogo é a alternativa definitiva para quem não quer mais depender de sites lentos ou pagar mensalidades para plataformas de terceiros.",
                 "Ele organiza seus produtos ou serviços e facilita a escolha do cliente, enviando o pedido ou a solicitação de orçamento pronta diretamente para o seu WhatsApp."
               ]}
-              badge="Vitrine de Produtos e Serviços"
               features={[
                 {
                   icon: DollarSign,
@@ -244,11 +235,11 @@ const Products = () => {
               icon={Database}
               title="Evolux Core"
               subtitle="Onde a Conversa vira Cliente Fiel"
-              paragraphs={[
+              shortParagraph="O sistema de gestão e CRM visual que organiza seu estoque, financeiro e clientes para transformar conversas em vendas recorrentes."
+              fullParagraphs={[
                 "Desenvolvido para o empresário que quer parar de esquecer quem são seus clientes, o Evolux Core une a organização do estoque e financeiro com um CRM de Atitude.",
                 "Ele organiza cada lead que chega pelo WhatsApp e transforma em um histórico real, permitindo que você saiba exatamente quem parou de comprar e quem é o seu melhor cliente."
               ]}
-              badge="Gestão e CRM"
               features={[
                 {
                   icon: Database,
@@ -275,11 +266,11 @@ const Products = () => {
               icon={LineChart}
               title="Evolux Vision"
               subtitle="O Fim da Digitação Manual de Notas"
-              paragraphs={[
+              shortParagraph="A tecnologia que lê fotos ou PDFs de Notas Fiscais para dar entrada de estoque e atualizar seu financeiro automaticamente em segundos."
+              fullParagraphs={[
                 "Desenvolvido para quem perde tempo preenchendo o sistema manualmente, o Evolux Vision é a tecnologia que \"lê\" seus documentos por você.",
                 "Basta uma foto ou o PDF da Nota Fiscal para que o sistema identifique os produtos e atualize seu estoque e financeiro automaticamente."
               ]}
-              badge="Entrada de Documentos"
               features={[
                 {
                   icon: ScanLine,
@@ -306,11 +297,11 @@ const Products = () => {
               icon={BrainCircuit}
               title="Evolux AI"
               subtitle="O Estrategista que Conhece seu Negócio"
-              paragraphs={[
+              shortParagraph="O consultor de inteligência de vendas que analisa seus dados de vendas e estoque para sugerir promoções e campanhas certeiras."
+              fullParagraphs={[
                 "Desenvolvido para quem quer vender mais usando as informações que já tem, o Evolux AI funciona como um consultor de marketing dentro da sua empresa.",
                 "Ele analisa os dados reais do seu negócio (vendas, estoque, clientes) e sugere as melhores ideias de promoções e campanhas para atrair clientes na hora certa."
               ]}
-              badge="Inteligência de Vendas"
               features={[
                 {
                   icon: Sparkles,
