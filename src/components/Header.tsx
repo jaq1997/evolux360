@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles } from "lucide-react";
 import * as React from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import { Link, useNavigate } from "react-router-dom";
 import {
   NavigationMenu,
@@ -14,7 +12,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const features: { title: string; href: string; description: string }[] = [
   {
@@ -40,38 +38,8 @@ const features: { title: string; href: string; description: string }[] = [
 ];
 
 export const Header = () => {
-  const [session, setSession] = useState<Session | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkDemo = () => {
-      const demo = localStorage.getItem('demo_mode') === 'true';
-      setIsDemoMode(demo);
-    };
-    
-    checkDemo();
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      checkDemo();
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    localStorage.removeItem('demo_mode');
-    await supabase.auth.signOut();
-    navigate('/');
-  };
-
-  const whatsappLink = "https://wa.me/5551993417866?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20Evolux360.";
 
   return (
     <header className="bg-white border-b border-gray-100 p-4 sticky top-0 z-50">
@@ -80,7 +48,7 @@ export const Header = () => {
           <img src="/logo-com-tagline.svg" alt="Evolux360" className="h-10 w-auto" />
         </Link>
 
-        {/* Navegação Desktop (some em telas menores que 'md') */}
+        {/* Navegação Desktop */}
         <nav className="hidden md:flex items-center space-x-6">
           <NavigationMenu>
             <NavigationMenuList>
@@ -120,24 +88,17 @@ export const Header = () => {
           </NavigationMenu>
         </nav>
         
-        {/* Botões da Direita Desktop (somem em telas menores que 'md') */}
+        {/* Botões da Direita Desktop */}
         <div className="hidden md:flex items-center space-x-3">
-          {(session || isDemoMode) ? (
-            <>
-              <Button variant="ghost" className="font-bold text-[#5932EA]" onClick={() => navigate('/dashboard')}>Dashboard</Button>
-              <Button onClick={handleLogout} variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-xl" size="icon"><LogOut className="h-4 w-4" /></Button>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" className="font-bold text-gray-600 hover:text-[#5932EA]" onClick={() => navigate('/auth')}>Entrar</Button>
-              <Button className="bg-[#5932EA] text-white hover:bg-[#4A28C7] shadow-xl shadow-purple-100 font-bold h-11 px-6 rounded-xl transition-all hover:scale-105 active:scale-95" onClick={() => navigate('/products')}>
-                Começar agora
-              </Button>
-            </>
-          )}
+          <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer">
+            <Button variant="ghost" className="font-bold text-gray-600 hover:text-[#5932EA]">Entrar</Button>
+          </a>
+          <Button className="bg-[#5932EA] text-white hover:bg-[#4A28C7] shadow-xl shadow-purple-100 font-bold h-11 px-6 rounded-xl transition-all hover:scale-105 active:scale-95" onClick={() => navigate('/products')}>
+            Começar agora
+          </Button>
         </div>
 
-        {/* Botão do Menu Hambúrguer (só aparece em telas menores que 'md') */}
+        {/* Botão do Menu Hambúrguer (Mobile) */}
         <div className="md:hidden">
           <Button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} variant="ghost" size="icon">
             {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -156,21 +117,14 @@ export const Header = () => {
               Funcionalidades
             </Link>
             <div className="border-t border-gray-200 pt-4 flex flex-col space-y-3">
-              {(session || isDemoMode) ? (
-                 <>
-                  <Button variant="ghost" onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }}>Dashboard</Button>
-                  <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} variant="outline">Sair</Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" className="text-[#5932EA] border-[#5932EA] hover:bg-[#5932EA] hover:text-white" onClick={() => { navigate('/auth'); setIsMobileMenuOpen(false); }}>
-                    Entrar
-                  </Button>
-                  <Button className="bg-[#5932EA] text-white hover:bg-[#4A28C7]" onClick={() => { navigate('/products'); setIsMobileMenuOpen(false); }}>
-                    Conheça nossas soluções
-                  </Button>
-                </>
-              )}
+              <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer" className="w-full">
+                <Button variant="outline" className="w-full text-[#5932EA] border-[#5932EA] hover:bg-[#5932EA] hover:text-white">
+                  Entrar
+                </Button>
+              </a>
+              <Button className="bg-[#5932EA] text-white hover:bg-[#4A28C7]" onClick={() => { navigate('/products'); setIsMobileMenuOpen(false); }}>
+                Conheça nossas soluções
+              </Button>
             </div>
           </div>
         </div>
