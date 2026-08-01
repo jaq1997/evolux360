@@ -125,12 +125,19 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="mt-8 pt-4 border-t border-gray-100 flex flex-wrap justify-between items-center gap-3">
-          <a href="https://vendeai-lp.vercel.app/" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="text-[#5932EA] border-purple-200 hover:bg-purple-50 font-bold h-12 px-6 rounded-xl">
-              Conhecer o VendeAI <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </a>
-          <Button onClick={onClose} className="bg-[#5932EA] hover:bg-[#4A28C7] px-8 h-12 rounded-xl font-bold">
+          <div className="flex flex-wrap gap-2">
+            <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer">
+              <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-11 px-5 rounded-xl text-xs sm:text-sm">
+                Conhecer Evolux Catálogo <ArrowRight className="w-4 h-4 ml-1.5" />
+              </Button>
+            </a>
+            <a href="https://vendeai-lp.vercel.app/" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="text-[#5932EA] border-purple-200 hover:bg-purple-50 font-bold h-11 px-5 rounded-xl text-xs sm:text-sm">
+                Conhecer VendeAI <ArrowRight className="w-4 h-4 ml-1.5" />
+              </Button>
+            </a>
+          </div>
+          <Button onClick={onClose} variant="ghost" className="text-gray-500 hover:text-gray-900 font-bold">
             Fechar
           </Button>
         </div>

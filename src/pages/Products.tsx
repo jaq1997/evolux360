@@ -167,7 +167,39 @@ const Products = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
             
-            {/* 1. VendeAI */}
+            {/* 1. Evolux Catálogo - PRIMEIRO FOCO */}
+            <SolutionCard 
+              icon={Package}
+              title="Evolux Catálogo"
+              subtitle="Sua Estrutura Profissional sem Aluguel"
+              shortParagraph="Sua vitrine profissional de produtos e serviços sem aluguel de plataforma, com fechamento rápido direto no seu WhatsApp."
+              fullParagraphs={[
+                "Desenvolvido para quem quer apresentar seu trabalho de forma rápida e profissional, o Evolux Catálogo é a alternativa definitiva para quem não quer mais depender de sites lentos ou pagar mensalidades para plataformas de terceiros.",
+                "Ele organiza seus produtos ou serviços e facilita a escolha do cliente, enviando o pedido ou a solicitação de orçamento pronta diretamente para o seu WhatsApp."
+              ]}
+              features={[
+                {
+                  icon: DollarSign,
+                  title: "Pagamento Único",
+                  description: "Você paga apenas uma vez pela montagem. Sem mensalidade de plataforma."
+                },
+                {
+                  icon: Zap,
+                  title: "Velocidade Máxima",
+                  description: "Site ultra-leve que abre instantaneamente, ideal para converter leads vindos de anúncios."
+                },
+                {
+                  icon: Smartphone,
+                  title: "Fechamento Organizado",
+                  description: "O cliente escolhe o que deseja e fecha a compra direto no seu WhatsApp ou no checkout que você já usa."
+                }
+              ]}
+              href="https://evolux-catalogo-lp.vercel.app/"
+              buttonText="Conhecer Evolux Catálogo agora"
+              delay={0.1}
+            />
+
+            {/* 2. VendeAI */}
             <SolutionCard 
               icon={TrendingUp}
               title="VendeAI"
@@ -196,37 +228,6 @@ const Products = () => {
               ]}
               href="https://vendeai-lp.vercel.app/"
               buttonText="Conhecer VendeAI agora"
-              delay={0.1}
-            />
-
-            {/* 2. Evolux Catálogo */}
-            <SolutionCard 
-              icon={Package}
-              title="Evolux Catálogo"
-              subtitle="Sua Estrutura Profissional sem Aluguel"
-              shortParagraph="Sua vitrine profissional de produtos e serviços sem aluguel de plataforma, com fechamento rápido direto no seu WhatsApp."
-              fullParagraphs={[
-                "Desenvolvido para quem quer apresentar seu trabalho de forma rápida e profissional, o Evolux Catálogo é a alternativa definitiva para quem não quer mais depender de sites lentos ou pagar mensalidades para plataformas de terceiros.",
-                "Ele organiza seus produtos ou serviços e facilita a escolha do cliente, enviando o pedido ou a solicitação de orçamento pronta diretamente para o seu WhatsApp."
-              ]}
-              features={[
-                {
-                  icon: DollarSign,
-                  title: "Pagamento Único",
-                  description: "Você paga apenas uma vez pela montagem. Sem mensalidade de plataforma."
-                },
-                {
-                  icon: Zap,
-                  title: "Velocidade Máxima",
-                  description: "Site ultra-leve que abre instantaneamente, ideal para converter leads vindos de anúncios."
-                },
-                {
-                  icon: Smartphone,
-                  title: "Fechamento Organizado",
-                  description: "O cliente escolhe o que deseja e fecha a compra direto no seu WhatsApp ou no checkout que você já usa."
-                }
-              ]}
-              buttonText="Conhecer Evolux Catálogo agora"
               delay={0.2}
             />
 
@@ -261,38 +262,7 @@ const Products = () => {
               delay={0.3}
             />
 
-            {/* 4. Evolux Vision */}
-            <SolutionCard 
-              icon={LineChart}
-              title="Evolux Vision"
-              subtitle="O Fim da Digitação Manual de Notas"
-              shortParagraph="A tecnologia que lê fotos ou PDFs de Notas Fiscais para dar entrada de estoque e atualizar seu financeiro automaticamente em segundos."
-              fullParagraphs={[
-                "Desenvolvido para quem perde tempo preenchendo o sistema manualmente, o Evolux Vision é a tecnologia que \"lê\" seus documentos por você.",
-                "Basta uma foto ou o PDF da Nota Fiscal para que o sistema identifique os produtos e atualize seu estoque e financeiro automaticamente."
-              ]}
-              features={[
-                {
-                  icon: ScanLine,
-                  title: "Leitura por Foto",
-                  description: "Tire foto da nota do fornecedor e a IA faz o trabalho pesado."
-                },
-                {
-                  icon: ShieldCheck,
-                  title: "Zero Erro Humano",
-                  description: "Elimine erros de digitação de preços, códigos e quantidades."
-                },
-                {
-                  icon: Zap,
-                  title: "Ganho de Tempo",
-                  description: "O que levava horas de digitação agora é feito em segundos."
-                }
-              ]}
-              buttonText="Conhecer Evolux Vision agora"
-              delay={0.4}
-            />
-
-            {/* 5. Evolux AI */}
+            {/* 4. Evolux AI */}
             <SolutionCard 
               icon={BrainCircuit}
               title="Evolux AI"
@@ -320,6 +290,37 @@ const Products = () => {
                 }
               ]}
               buttonText="Conhecer Evolux AI agora"
+              delay={0.4}
+            />
+
+            {/* 5. Evolux Vision */}
+            <SolutionCard 
+              icon={LineChart}
+              title="Evolux Vision"
+              subtitle="O Fim da Digitação Manual de Notas"
+              shortParagraph="A tecnologia que lê fotos ou PDFs de Notas Fiscais para dar entrada de estoque e atualizar seu financeiro automaticamente em segundos."
+              fullParagraphs={[
+                "Desenvolvido para quem perde tempo preenchendo o sistema manualmente, o Evolux Vision é a tecnologia que \"lê\" seus documentos por você.",
+                "Basta uma foto ou o PDF da Nota Fiscal para que o sistema identifique os produtos e atualize seu estoque e financeiro automaticamente."
+              ]}
+              features={[
+                {
+                  icon: ScanLine,
+                  title: "Leitura por Foto",
+                  description: "Tire foto da nota do fornecedor e a IA faz o trabalho pesado."
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Zero Erro Humano",
+                  description: "Elimine erros de digitação de preços, códigos e quantidades."
+                },
+                {
+                  icon: Zap,
+                  title: "Ganho de Tempo",
+                  description: "O que levava horas de digitação agora é feito em segundos."
+                }
+              ]}
+              buttonText="Conhecer Evolux Vision agora"
               delay={0.5}
             />
 

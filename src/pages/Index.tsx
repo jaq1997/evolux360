@@ -755,27 +755,70 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Mockup do Monitor Interativo com Dashboard Real */}
-        <section className="py-8 md:py-12 px-4 relative">
-          <div className="container mx-auto max-w-6xl">
-            <div className="text-center mb-6 text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest">
-              Explore o sistema real abaixo
+        {/* Ecossistema em Ação - 3 Passos Simples */}
+        <section className="py-16 md:py-24 px-4 relative bg-[#0F0728] text-white w-full border-y border-[#5932EA]/30 my-12">
+          <div className="container mx-auto max-w-6xl relative z-10">
+            <div className="text-center mb-12">
+              <span className="bg-[#5932EA]/30 text-purple-200 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-3 inline-block border border-[#5932EA]/40">
+                Como Funciona na Prática
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">
+                O Ciclo Perfeito para <span className="text-[#A78BFA]">Vender e Gerenciar</span>
+              </h2>
+              <p className="text-purple-200/80 text-sm md:text-base max-w-xl mx-auto font-medium">
+                Conecte a atração de clientes à gestão automática em uma jornada simples e de alta conversão.
+              </p>
             </div>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3 }}
-              className="relative px-2 sm:px-0"
-            >
-              <div className="relative mx-auto border-gray-800 bg-gray-800 border-[8px] md:border-[14px] rounded-2xl md:rounded-[2.5rem] h-[500px] md:h-[650px] w-full shadow-3xl overflow-hidden shadow-[#5932EA]/10">
-                <div className="h-full w-full bg-white">
-                  <MockDashboard />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Passo 1 */}
+              <div className="p-6 rounded-xl bg-[#180D3D] border border-[#5932EA]/30 hover:border-[#5932EA]/70 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-lg bg-[#5932EA] text-white font-black text-sm flex items-center justify-center mb-4">
+                    01
+                  </div>
+                  <h3 className="text-lg font-black text-white mb-2">1. Vitrine Profissional</h3>
+                  <p className="text-xs text-purple-200/70 leading-relaxed font-medium mb-4">
+                    Apresente seus produtos no <strong className="text-white">Evolux Catálogo</strong> sem mensalidades e receba pedidos organizados direto no seu WhatsApp.
+                  </p>
                 </div>
+                <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-purple-300 hover:text-white flex items-center gap-1">
+                  Conhecer Catálogo <ArrowRight className="w-3.5 h-3.5" />
+                </a>
               </div>
-              <div className="relative mx-auto bg-gray-900 rounded-b-xl h-[16px] md:h-[24px] w-[120px] md:w-[200px]"></div>
-              <div className="relative mx-auto bg-gray-800 rounded-b-xl h-[8px] md:h-[12px] w-[180px] md:w-[350px]"></div>
-            </motion.div>
+
+              {/* Passo 2 */}
+              <div className="p-6 rounded-xl bg-[#180D3D] border border-[#5932EA]/30 hover:border-[#5932EA]/70 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-lg bg-[#5932EA] text-white font-black text-sm flex items-center justify-center mb-4">
+                    02
+                  </div>
+                  <h3 className="text-lg font-black text-white mb-2">2. Automação 24/7</h3>
+                  <p className="text-xs text-purple-200/70 leading-relaxed font-medium mb-4">
+                    O <strong className="text-white">VendeAI</strong> assume o atendimento no WhatsApp, responde clientes instantaneamente e fecha vendas via Pix sem você precisar de digitação.
+                  </p>
+                </div>
+                <a href="https://vendeai-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-purple-300 hover:text-white flex items-center gap-1">
+                  Conhecer VendeAI <ArrowRight className="ml-0.5 w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              {/* Passo 3 */}
+              <div className="p-6 rounded-xl bg-[#180D3D] border border-[#5932EA]/30 hover:border-[#5932EA]/70 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-lg bg-[#5932EA] text-white font-black text-sm flex items-center justify-center mb-4">
+                    03
+                  </div>
+                  <h3 className="text-lg font-black text-white mb-2">3. Gestão & Inteligência</h3>
+                  <p className="text-xs text-purple-200/70 leading-relaxed font-medium mb-4">
+                    O <strong className="text-white">Evolux Core, AI & Vision</strong> organizam seu estoque por Nota Fiscal e geram ideias automáticas de promoções lucrativas.
+                  </p>
+                </div>
+                <Link to="/products" className="text-xs font-bold text-purple-300 hover:text-white flex items-center gap-1">
+                  Ver Todas as Soluções <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -823,20 +866,21 @@ const Index = () => {
                     <div key={i} className="flex gap-6 md:gap-8 shrink-0">
                       <div className="w-[300px] md:w-[350px] snap-center">
                         <ProductCard 
-                          icon={TrendingUp} 
-                          title="VendeAI" 
-                          description="A Ponta de Lança do Ecossistema Evolux360. Solução oficial de automação de vendas no WhatsApp."
+                          icon={Package} 
+                          title="Evolux Catálogo" 
+                          description="Sua Estrutura Profissional sem Aluguel. Vitrine digital sem mensalidades de plataforma."
                           delay={0}
-                          href="https://vendeai-lp.vercel.app/"
+                          href="https://evolux-catalogo-lp.vercel.app/"
                           isPrimary={true}
                         />
                       </div>
                       <div className="w-[300px] md:w-[350px] snap-center">
                         <ProductCard 
-                          icon={Package} 
-                          title="Evolux Catálogo" 
-                          description="Gestão de estoque, categorias e variantes. Controle em tempo real."
+                          icon={TrendingUp} 
+                          title="VendeAI" 
+                          description="A Ponta de Lança do Ecossistema Evolux360. Solução oficial de automação de vendas no WhatsApp."
                           delay={0}
+                          href="https://vendeai-lp.vercel.app/"
                         />
                       </div>
                       <div className="w-[300px] md:w-[350px] snap-center">
@@ -849,17 +893,17 @@ const Index = () => {
                       </div>
                       <div className="w-[300px] md:w-[350px] snap-center">
                         <ProductCard 
-                          icon={LineChart} 
-                          title="Evolux Vision" 
-                          description="Dashboards avançados e relatórios analíticos em tempo real (BI)."
+                          icon={BrainCircuit} 
+                          title="Evolux AI" 
+                          description="O Estrategista que Conhece seu Negócio. Inteligência de vendas baseada em dados reais."
                           delay={0}
                         />
                       </div>
                       <div className="w-[300px] md:w-[350px] snap-center">
                         <ProductCard 
-                          icon={BrainCircuit} 
-                          title="Evolux AI" 
-                          description="Inteligência Artificial que prevê tendências e sugere ações automáticas."
+                          icon={LineChart} 
+                          title="Evolux Vision" 
+                          description="O Fim da Digitação Manual. Leitura inteligente por foto de Notas Fiscais e documentos."
                           delay={0}
                         />
                       </div>

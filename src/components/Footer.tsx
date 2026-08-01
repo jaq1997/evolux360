@@ -24,25 +24,43 @@ export const Footer = () => {
             </div>
             
             <div>
-              <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Produto</h4>
-              <ul className="space-y-4 text-sm text-gray-500">
-                <li><Link to="/products" className="hover:text-white transition-colors">Nossas Soluções</Link></li>
-                <li><Link to="/features" className="hover:text-white transition-colors">Funcionalidades</Link></li>
+              <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Produtos</h4>
+              <ul className="space-y-3 text-sm text-gray-500">
+                <li>
+                  <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#5932EA]"></span> Evolux Catálogo
+                  </a>
+                </li>
+                <li>
+                  <a href="https://vendeai-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#5932EA]"></span> VendeAI
+                  </a>
+                </li>
+                <li>
+                  <Link to="/products" className="hover:text-white transition-colors">Evolux Core</Link>
+                </li>
+                <li>
+                  <Link to="/products" className="hover:text-white transition-colors">Evolux Vision</Link>
+                </li>
+                <li>
+                  <Link to="/products" className="hover:text-white transition-colors">Evolux AI</Link>
+                </li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Institucional</h4>
-              <ul className="space-y-4 text-sm text-gray-500">
+              <ul className="space-y-3 text-sm text-gray-500">
                 <li>
                   <button 
                     onClick={() => setIsAboutOpen(true)} 
                     className="hover:text-white transition-colors text-left font-medium"
                   >
-                    Sobre a Evolux
+                    Sobre a Evolux360
                   </button>
                 </li>
-                <li><a href="https://vendeai-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">VendeAI</a></li>
+                <li><Link to="/products" className="hover:text-white transition-colors">Nossas Soluções</Link></li>
+                <li><Link to="/features" className="hover:text-white transition-colors">Funcionalidades</Link></li>
               </ul>
             </div>
 
