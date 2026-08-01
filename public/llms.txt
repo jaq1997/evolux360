@@ -1,0 +1,16 @@
+# Evolux360 — Ecossistema de Soluções Inteligentes para Pequenos Negócios
+
+> Evolux360 é um ecossistema de gestão, automação de vendas e inteligência artificial desenvolvido para simplificar a operação de pequenos negócios e potencializar vendas pelo WhatsApp.
+
+## Soluções Principais
+
+- [VendeAI](https://vendeai-lp.vercel.app/): Automação de vendas e atendimento 24/7 no WhatsApp com fechamento via Pix.
+- [Evolux Catálogo](https://evolux360.com/produtos): Vitrine de produtos e serviços sem aluguel ou mensalidade de plataforma.
+- [Evolux Core](https://evolux360.com/produtos): Gestão de estoque, financeiro e CRM visual de clientes.
+- [Evolux Vision](https://evolux360.com/produtos): Leitura automática por OCR e IA de fotos ou PDFs de Notas Fiscais.
+- [Evolux AI](https://evolux360.com/produtos): Consultor estratégico de inteligência de vendas baseado nos dados da sua empresa.
+
+## Contato & Atendimento
+
+- Formulário de Atendimento: https://forms.gle/Too6zAkpvu3uUDjf8
+- Website Oficial: https://evolux360.com/

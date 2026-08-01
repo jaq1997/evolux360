@@ -1,0 +1,37 @@
+{
+  "$schema": "https://agentskills.io/schema/v0.2.0.json",
+  "name": "Evolux360 Agent Skills Index",
+  "description": "Lista de recursos e soluções do ecossistema Evolux360 para agentes de IA",
+  "skills": [
+    {
+      "name": "VendeAI WhatsApp Sales Automation",
+      "type": "automation",
+      "description": "Automação de vendas 24/7 e atendimento inteligente no WhatsApp.",
+      "url": "https://vendeai-lp.vercel.app/"
+    },
+    {
+      "name": "Evolux Catálogo Online",
+      "type": "catalog",
+      "description": "Vitrine digital de produtos e serviços com pedidos diretos via WhatsApp.",
+      "url": "https://evolux360.com/produtos"
+    },
+    {
+      "name": "Evolux Core CRM & Inventory",
+      "type": "crm",
+      "description": "Gestão simplificada de estoque, financeiro e CRM visual de clientes.",
+      "url": "https://evolux360.com/produtos"
+    },
+    {
+      "name": "Evolux Vision Invoice OCR",
+      "type": "ocr",
+      "description": "Entrada automática de produtos e estoque via foto ou PDF de Notas Fiscais.",
+      "url": "https://evolux360.com/produtos"
+    },
+    {
+      "name": "Evolux AI Business Insights",
+      "type": "ai-advisor",
+      "description": "Consultor estratégico de vendas que gera relatórios e campanhas baseadas nos dados da empresa.",
+      "url": "https://evolux360.com/produtos"
+    }
+  ]
+}
