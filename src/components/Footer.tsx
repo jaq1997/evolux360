@@ -14,7 +14,7 @@ export const Footer = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-1 md:col-span-1">
-              <Link to="/" className="flex items-center space-x-2 mb-6">
+              <Link to="/" className="flex items-center space-x-2 mb-6" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <img src="/icone-branco.svg" alt="Logo" className="w-8 h-8" />
                 <span className="text-2xl font-black tracking-tighter">Evolux360</span>
               </Link>
@@ -27,23 +27,29 @@ export const Footer = () => {
               <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Produtos</h4>
               <ul className="space-y-3 text-sm text-gray-400">
                 <li>
-                  <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1.5 font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#5932EA]"></span> Evolux Catálogo
+                  <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-2 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#6C4FF0]"></span> Evolux Catálogo
                   </a>
                 </li>
                 <li>
-                  <a href="https://vendeai-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1.5 font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#5932EA]"></span> VendeAI
+                  <a href="https://vendeai-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-2 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#6C4FF0]"></span> VendeAI
                   </a>
                 </li>
                 <li>
-                  <Link to="/products" className="hover:text-white transition-colors font-medium">Evolux Core</Link>
+                  <Link to="/products" className="hover:text-white transition-colors flex items-center gap-2 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#6C4FF0]"></span> Evolux Core
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/products" className="hover:text-white transition-colors font-medium">Evolux Vision</Link>
+                  <Link to="/products" className="hover:text-white transition-colors flex items-center gap-2 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#6C4FF0]"></span> Evolux Vision
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/products" className="hover:text-white transition-colors font-medium">Evolux AI</Link>
+                  <Link to="/products" className="hover:text-white transition-colors flex items-center gap-2 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#6C4FF0]"></span> Evolux AI
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -51,16 +57,9 @@ export const Footer = () => {
             <div>
               <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Institucional</h4>
               <ul className="space-y-3 text-sm text-gray-400 font-medium">
-                <li>
-                  <a 
-                    href="#sobre" 
-                    className="hover:text-white transition-colors text-left font-medium"
-                  >
-                    Sobre a Evolux360
-                  </a>
-                </li>
-                <li><Link to="/products" className="hover:text-white transition-colors font-medium">Nossas Soluções</Link></li>
-                <li><Link to="/features/automacao-inteligente" className="hover:text-white transition-colors font-medium">Funcionalidades</Link></li>
+                <li><a href="#solucoes" className="hover:text-white transition-colors font-medium">Ecossistema Evolux360</a></li>
+                <li><a href="#como-funciona" className="hover:text-white transition-colors font-medium">Como funciona</a></li>
+                <li><a href="#diferenciais" className="hover:text-white transition-colors font-medium">Diferenciais</a></li>
               </ul>
             </div>
 

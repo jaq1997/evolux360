@@ -349,6 +349,16 @@ const Index = () => {
               </motion.div>
 
             </div>
+
+            {/* Link para ver detalhes completos da página de produtos */}
+            <div className="mt-12 text-center">
+              <Link 
+                to="/products" 
+                className="inline-flex items-center gap-2 font-bold text-sm text-[#6C4FF0] hover:text-[#5932EA] transition-colors bg-purple-50/80 px-6 py-3 rounded-full hover:bg-purple-100/80 border border-[#6C4FF0]/20"
+              >
+                Veja mais detalhes completos de cada solução <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </section>
 

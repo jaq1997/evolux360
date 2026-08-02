@@ -44,16 +44,42 @@ export const Header = () => {
   return (
     <header className="bg-white border-b border-gray-100 p-4 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <img src="/logo-com-tagline.svg" alt="Evolux360" className="h-10 w-auto" />
         </Link>
 
         {/* Navegação Desktop */}
         <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Início</Link>
           <a href="#como-funciona" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Como funciona</a>
-          <a href="#solucoes" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Soluções</a>
-          <a href="#sobre" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Sobre</a>
-          <a href="#diferenciais" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Diferenciais</a>
+          <a href="#solucoes" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Nossas Soluções</a>
+          
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="font-semibold text-gray-600 hover:text-[#5932EA] text-sm bg-transparent h-auto p-0 hover:bg-transparent data-[state=open]:bg-transparent">
+                  Funcionalidades
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="w-[320px] p-4 bg-white border border-gray-100 rounded-2xl shadow-xl space-y-2">
+                    {features.map((feature) => (
+                      <li key={feature.title}>
+                        <NavigationMenuLink asChild>
+                          <Link
+                            to="/products"
+                            className="block p-3 rounded-xl hover:bg-purple-50 transition-colors"
+                          >
+                            <div className="text-sm font-bold text-gray-900">{feature.title}</div>
+                            <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{feature.description}</p>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </nav>
         
         {/* Botão Único de Destaque Desktop */}
@@ -77,18 +103,18 @@ export const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg z-40 border-b border-gray-100">
           <div className="container mx-auto flex flex-col p-6 space-y-4">
+            <Link to="/" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
+              Início
+            </Link>
             <a href="#como-funciona" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
               Como funciona
             </a>
             <a href="#solucoes" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
-              Soluções
+              Nossas Soluções
             </a>
-            <a href="#sobre" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
-              Sobre
-            </a>
-            <a href="#diferenciais" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
-              Diferenciais
-            </a>
+            <Link to="/products" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
+              Funcionalidades
+            </Link>
             <div className="border-t border-gray-100 pt-4">
               <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer" className="w-full block" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button className="w-full bg-[#6C4FF0] text-white font-bold h-12 rounded-full">
