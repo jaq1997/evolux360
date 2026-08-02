@@ -191,7 +191,7 @@ const Products = () => {
                 {
                   icon: Smartphone,
                   title: "Fechamento Organizado",
-                  description: "O cliente escolhe o que deseja e fecha a compra direto no seu WhatsApp ou no checkout que você já usa."
+                  description: "O cliente escolhe o que deseja e envia o pedido organizado direto no seu WhatsApp."
                 }
               ]}
               href="https://evolux-catalogo-lp.vercel.app/"
@@ -335,7 +335,7 @@ const Products = () => {
           <p className="text-base text-slate-500 mb-8 max-w-xl mx-auto font-medium">Criamos integrações e fluxos personalizados para o seu modelo de negócio. Vamos conversar?</p>
           <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer">
             <Button variant="outline" className="h-12 px-8 text-base font-bold rounded-xl border-slate-300 hover:bg-white shadow-sm transition-all text-slate-800">
-              Falar com um consultor
+              Entre em contato
             </Button>
           </a>
         </div>

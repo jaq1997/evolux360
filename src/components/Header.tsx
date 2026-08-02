@@ -49,53 +49,20 @@ export const Header = () => {
         </Link>
 
         {/* Navegação Desktop */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link to="/" className={cn(navigationMenuTriggerStyle(), "font-bold text-gray-600 hover:text-[#5932EA]")}>Início</Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/products" className={cn(navigationMenuTriggerStyle(), "font-bold text-gray-600 hover:text-[#5932EA]")}>Nossas Soluções</Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className={cn(navigationMenuTriggerStyle(), "font-bold text-gray-600 hover:text-[#5932EA]")}>Funcionalidades</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-6 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-white/80 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl">
-                    <li className="row-span-3">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          className="flex h-full w-full select-none flex-col justify-end rounded-2xl bg-gradient-to-b from-[#5932EA] to-[#7C3AED] p-6 no-underline outline-none focus:shadow-md transition-all hover:scale-[1.02]"
-                          to="/features/automacao-inteligente"
-                        >
-                          <Sparkles className="h-10 w-10 text-white mb-4" />
-                          <div className="mb-2 mt-4 text-xl font-black text-white">
-                            Inteligência Total
-                          </div>
-                          <p className="text-sm leading-tight text-white/80 font-medium">
-                            Conheça o motor de IA que move o Evolux360 e automatiza seu negócio.
-                          </p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                    {features.map((feature) => (
-                      <ListItem key={feature.title} title={feature.title} to={feature.href}>{feature.description}</ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+        <nav className="hidden md:flex items-center space-x-8">
+          <a href="#como-funciona" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Como funciona</a>
+          <a href="#solucoes" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Soluções</a>
+          <a href="#sobre" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Sobre</a>
+          <a href="#diferenciais" className="font-semibold text-gray-600 hover:text-[#5932EA] transition-colors text-sm">Diferenciais</a>
         </nav>
         
-        {/* Botões da Direita Desktop */}
-        <div className="hidden md:flex items-center space-x-3">
+        {/* Botão Único de Destaque Desktop */}
+        <div className="hidden md:flex items-center">
           <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer">
-            <Button variant="ghost" className="font-bold text-gray-600 hover:text-[#5932EA]">Entrar</Button>
+            <Button className="bg-[#6C4FF0] hover:bg-[#5932EA] text-white font-bold h-11 px-7 rounded-full shadow-md transition-all hover:scale-105 active:scale-95 text-sm">
+              Falar com a Evolux
+            </Button>
           </a>
-          <Button className="bg-[#5932EA] text-white hover:bg-[#4A28C7] shadow-xl shadow-purple-100 font-bold h-11 px-6 rounded-xl transition-all hover:scale-105 active:scale-95" onClick={() => navigate('/products')}>
-            Começar agora
-          </Button>
         </div>
 
         {/* Botão do Menu Hambúrguer (Mobile) */}
@@ -108,23 +75,26 @@ export const Header = () => {
 
       {/* Painel do Menu Mobile */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg z-40">
-          <div className="container mx-auto flex flex-col p-4 space-y-4">
-            <Link to="/products" className="py-2 text-lg text-gray-700 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
-              Nossas Soluções
-            </Link>
-            <Link to="/features/automacao-inteligente" className="py-2 text-lg text-gray-700 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
-              Funcionalidades
-            </Link>
-            <div className="border-t border-gray-200 pt-4 flex flex-col space-y-3">
-              <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer" className="w-full">
-                <Button variant="outline" className="w-full text-[#5932EA] border-[#5932EA] hover:bg-[#5932EA] hover:text-white">
-                  Entrar
+        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg z-40 border-b border-gray-100">
+          <div className="container mx-auto flex flex-col p-6 space-y-4">
+            <a href="#como-funciona" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
+              Como funciona
+            </a>
+            <a href="#solucoes" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
+              Soluções
+            </a>
+            <a href="#sobre" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
+              Sobre
+            </a>
+            <a href="#diferenciais" className="py-2 text-base font-bold text-gray-900 hover:text-[#5932EA]" onClick={() => setIsMobileMenuOpen(false)}>
+              Diferenciais
+            </a>
+            <div className="border-t border-gray-100 pt-4">
+              <a href="https://forms.gle/Too6zAkpvu3uUDjf8" target="_blank" rel="noopener noreferrer" className="w-full block" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button className="w-full bg-[#6C4FF0] text-white font-bold h-12 rounded-full">
+                  Falar com a Evolux
                 </Button>
               </a>
-              <Button className="bg-[#5932EA] text-white hover:bg-[#4A28C7]" onClick={() => { navigate('/products'); setIsMobileMenuOpen(false); }}>
-                Conheça nossas soluções
-              </Button>
             </div>
           </div>
         </div>
