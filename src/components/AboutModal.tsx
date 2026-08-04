@@ -110,7 +110,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
 
         <div className="mt-6 pt-4 border-t border-gray-100 flex flex-wrap justify-between items-center gap-3">
           <div className="flex flex-wrap gap-2">
-            <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer">
+            <a href="https://catalogo.evolux360.online/" target="_blank" rel="noopener noreferrer">
               <Button className="bg-[#5932EA] hover:bg-[#4A28C7] text-white font-bold h-10 px-4 rounded-xl text-xs">
                 Conhecer Evolux Catálogo <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>

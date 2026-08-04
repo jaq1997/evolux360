@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Instagram } from "lucide-react"; 
+import { Instagram, Mail } from "lucide-react"; 
 import { AboutModal } from "./AboutModal";
 import { LegalModal } from "./LegalModal";
 
@@ -27,7 +27,7 @@ export const Footer = () => {
               <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Produtos</h4>
               <ul className="space-y-3 text-sm text-gray-400">
                 <li>
-                  <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-2 font-medium">
+                  <a href="https://catalogo.evolux360.online/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-2 font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#6C4FF0]"></span> Evolux Catálogo
                   </a>
                 </li>
@@ -64,15 +64,22 @@ export const Footer = () => {
             </div>
 
             <div>
-              <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Conecte-se</h4>
-              <div className="flex space-x-4 mb-6">
+              <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Contato & Redes</h4>
+              <div className="flex flex-col space-y-3">
+                <a 
+                  href="mailto:contatoevolux360@gmail.com" 
+                  className="bg-white/5 px-4 py-3 rounded-2xl hover:bg-[#5932EA] transition-all flex items-center gap-3 font-medium text-xs text-gray-300 hover:text-white border border-white/10 group"
+                >
+                  <Mail className="w-4 h-4 text-[#6C4FF0] group-hover:text-white transition-colors shrink-0" />
+                  <span className="truncate">contatoevolux360@gmail.com</span>
+                </a>
                 <a 
                   href="https://www.instagram.com/souevolux360/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-white/5 px-4 py-3 rounded-full hover:bg-[#5932EA] transition-all flex items-center gap-2 font-bold text-sm text-gray-300 hover:text-white border border-white/10"
+                  className="bg-white/5 px-4 py-3 rounded-2xl hover:bg-[#5932EA] transition-all flex items-center gap-3 font-medium text-xs text-gray-300 hover:text-white border border-white/10 group"
                 >
-                  <Instagram className="w-5 h-5 text-white" />
+                  <Instagram className="w-4 h-4 text-[#6C4FF0] group-hover:text-white transition-colors shrink-0" />
                   <span>@souevolux360</span>
                 </a>
               </div>

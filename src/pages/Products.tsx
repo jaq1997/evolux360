@@ -194,7 +194,7 @@ const Products = () => {
                   description: "O cliente escolhe o que deseja e envia o pedido organizado direto no seu WhatsApp."
                 }
               ]}
-              href="https://evolux-catalogo-lp.vercel.app/"
+              href="https://catalogo.evolux360.online/"
               buttonText="Conhecer Evolux Catálogo agora"
               delay={0.1}
             />

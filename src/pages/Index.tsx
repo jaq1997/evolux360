@@ -15,7 +15,7 @@ const Index = () => {
       subtitle: "Evolux Catálogo",
       description: "Apresente seus produtos no Evolux Catálogo sem mensalidade e receba pedidos organizados direto no seu WhatsApp.",
       linkText: "Conhecer Catálogo →",
-      href: "https://evolux-catalogo-lp.vercel.app/",
+      href: "https://catalogo.evolux360.online/",
       isExternal: true,
       icon: Package
     },
@@ -251,7 +251,7 @@ const Index = () => {
                     Sua vitrine profissional, sem mensalidade. Organize produtos e receba pedidos direto pelo WhatsApp.
                   </p>
                 </div>
-                <a href="https://evolux-catalogo-lp.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#6C4FF0] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                <a href="https://catalogo.evolux360.online/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#6C4FF0] group-hover:translate-x-1 transition-transform flex items-center gap-1">
                   Conhecer Catálogo →
                 </a>
               </motion.div>
